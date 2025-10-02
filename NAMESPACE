@@ -1,0 +1,2 @@
+exportPattern("^[^.]")
+# useDynLib(mixedcurve, .registration=TRUE)
