@@ -48,6 +48,21 @@ kern_h <- function(x, h, kern = gauss_kern) {
 }
 # }}} k_h
 
+# {{{ lm_kernel_weights
+lm_kernel_weights <- function(dataframe, bwidth, query) {
+  design_matrix <- cbind(dataframe$y, model.matrix(~ grp, dataframe))
+  colnames(design_matrix) <- c("y", "intercept",
+                               paste("grp",
+                                     levels(dataframe$grp)[2:length(levels(dataframe$grp))],
+                                     sep = ""))
+  weights <- sqrt(k_h(dataframe$x - query, bwidth))
+  weighted_design_matrix <- sweep(design_matrix, 1, weights, FUN = "*")
+  colnames(weighted_design_matrix) <- paste("w_", colnames(design_matrix), sep = "")
+  as.data.frame(weighted_design_matrix)
+}
+
+# }}} lm_kernel_weights
+
 # Local Variables:
 # eval: (origami-mode t)
 # End:
