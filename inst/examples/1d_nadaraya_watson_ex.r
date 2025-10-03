@@ -13,3 +13,4 @@ gen_1d_curve_data <- function(n = 300,
 df1 <- gen_1d_curve_data()
 plot(df1$x, df1$y, col = df1$grp)
 
+
