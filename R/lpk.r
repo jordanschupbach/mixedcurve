@@ -2,17 +2,17 @@
 
 # {{{ License
 # Copyright (C) <2025>  <Jordan Schupbach>
-# 
+#
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 3 of the License, or
 #     (at your option) any later version.
-# 
+#
 #     This program is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
-# 
+#
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # }}} License
@@ -27,13 +27,15 @@
 #' @param queries A numeric vector of points at which to evaluate the fitted values.
 #' @param data A data frame containing the variables in the formula.
 #' @param h A positive numeric value representing the bandwidth for the kernel.
-lpk <- function(formula, 
+lpk <- function(formula,
                 queries,
                 data,
                 degree = 0,
                 kernel = mixedcurve::gauss_kern,
                 h,
-                parallel = FALSE) { }
+                parallel = FALSE) {
+
+}
 # }}} lpk
 
 # {{{ glpk
@@ -45,12 +47,12 @@ lpk <- function(formula,
 #' @param data A data frame containing the variables in the formula.
 #' @param h A positive numeric value representing the bandwidth for the kernel.
 glpk <- function(formula, degree = 0,
-                queries,
-                data,
-                kernel = mixedcurve::gauss_kern,
-                h,
-                family = "gaussian",
-                parallel = FALSE) {
+                 queries,
+                 data,
+                 kernel = mixedcurve::gauss_kern,
+                 h,
+                 family = "gaussian",
+                 parallel = FALSE) {
 
 }
 # }}} lpk
@@ -64,12 +66,12 @@ glpk <- function(formula, degree = 0,
 #' @param data A data frame containing the variables in the formula.
 #' @param h A positive numeric value representing the bandwidth for the kernel.
 lpkme <- function(formula,
-                queries,
-                data,
-                h, 
-                degree = 0,
-                kernel = mixedcurve::gauss_kern,
-                parallel = FALSE) { }
+                  queries,
+                  data,
+                  h,
+                  degree = 0,
+                  kernel = mixedcurve::gauss_kern,
+                  parallel = FALSE) { }
 # }}} lpkme
 
 # {{{ glpkme
@@ -81,13 +83,13 @@ lpkme <- function(formula,
 #' @param data A data frame containing the variables in the formula.
 #' @param h A positive numeric value representing the bandwidth for the kernel.
 glpkme <- function(formula,
-                queries,
-                data,
-                h,
-                degree = 0,
-                kernel = mixedcurve::gauss_kern,
-                family = "poisson",
-                parallel = FALSE) { }
+                   queries,
+                   data,
+                   h,
+                   degree = 0,
+                   kernel = mixedcurve::gauss_kern,
+                   family = "poisson",
+                   parallel = FALSE) { }
 # }}} lpkme
 
 # Local Variables:

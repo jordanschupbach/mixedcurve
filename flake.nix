@@ -28,6 +28,7 @@
           rPackages.knitr
           rPackages.geoR
           pandoc
+          entr
         ];
       };
     });

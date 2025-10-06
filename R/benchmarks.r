@@ -292,14 +292,21 @@ m5 <- function(t, i) {
 
 # {{{ generate fanova data
 
-gen_1d_fanova_data <- function(f = tmc::m3, bounds = c(0, 1), n = 10, ngrp = 3, nx = 200,
-                               balanced = FALSE, pgrp = sample, pgrpargs = list(x = 1:3, size = 30, replace = TRUE),
-                               sigma = 0.05, systematic = FALSE, px = runif, pxargs = list(min = 0, max = 1),
-                               white_noise = TRUE, cov_scale = 0.05, gpn = 1000) {
-  ntotal <- n * ngrp
+gen_1d_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
+                               n = 10, ngrp = 3, nx = 200,
+                               balanced = FALSE, pgrp = sample,
+                               pgrpargs = list(x = 1:3,
+                                               size = 10,
+                                               replace = TRUE),
+                               sigma = 0.05, systematic = FALSE,
+                               px = runif, pxargs = list(min = 0, max = 1),
+                               white_noise = TRUE,
+                               cov_scale = 0.05, gpn = 1000) {
   if (balanced) {
+    ntotal <- n * ngrp
     grps <- rep(1:ngrp, each = n)
   } else {
+    ntotal <- n
     grps <- do.call(pgrp, pgrpargs)
   }
   ylist <- list()
