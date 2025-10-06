@@ -61,6 +61,7 @@ parse_terms <- function(form) {
   for (i in seq_len(nrow(classified))) {
     term <- classified$term[i]
     term_type <- classified$type[i]
+    
     if (term_type == "kernel fixed effect") {
       # Extract lhs and rhs from kernel fixed effect
       matches <- regmatches(term, regexec("K_h\\((.+?)\\|(.+?)\\)", term))
@@ -70,6 +71,7 @@ parse_terms <- function(form) {
                             data.frame(term = term, type = term_type,
                                        lhs = lhs, rhs = rhs,
                                        stringsAsFactors = FALSE))
+      
     } else if (term_type == "random effect") {
       # Extract lhs and rhs from random effect
       matches <- regmatches(term, regexec("\\((.+?)\\|(.+?)\\)", term))
@@ -81,8 +83,51 @@ parse_terms <- function(form) {
                                          lhs = lhs, rhs = rhs,
                                          stringsAsFactors = FALSE))
       }
+    } else if (term_type == "fixed effect") {
+      # For fixed effects, put the term in lhs; no rhs
+      parsed_terms <- rbind(parsed_terms,
+                            data.frame(term = term, type = term_type,
+                                       lhs = term, rhs = NA,
+                                       stringsAsFactors = FALSE))
     }
   }
+  
   rownames(parsed_terms) <- seq_len(nrow(parsed_terms))
   parsed_terms
 }
+
+
+
+# parse_terms <- function(form) {
+#   classified <- classify_terms(form)
+#   parsed_terms <- data.frame(term = character(), type = character(),
+#                              lhs = character(), rhs = character(),
+#                              stringsAsFactors = FALSE)
+#   for (i in seq_len(nrow(classified))) {
+#     term <- classified$term[i]
+#     term_type <- classified$type[i]
+#     if (term_type == "kernel fixed effect") {
+#       # Extract lhs and rhs from kernel fixed effect
+#       matches <- regmatches(term, regexec("K_h\\((.+?)\\|(.+?)\\)", term))
+#       lhs <- trimws(matches[[1]][2])
+#       rhs <- trimws(matches[[1]][3])
+#       parsed_terms <- rbind(parsed_terms,
+#                             data.frame(term = term, type = term_type,
+#                                        lhs = lhs, rhs = rhs,
+#                                        stringsAsFactors = FALSE))
+#     } else if (term_type == "random effect") {
+#       # Extract lhs and rhs from random effect
+#       matches <- regmatches(term, regexec("\\((.+?)\\|(.+?)\\)", term))
+#       if (length(matches[[1]]) > 1) {
+#         lhs <- trimws(matches[[1]][2])
+#         rhs <- trimws(matches[[1]][3])
+#         parsed_terms <- rbind(parsed_terms,
+#                               data.frame(term = term, type = term_type,
+#                                          lhs = lhs, rhs = rhs,
+#                                          stringsAsFactors = FALSE))
+#       }
+#     }
+#   }
+#   rownames(parsed_terms) <- seq_len(nrow(parsed_terms))
+#   parsed_terms
+# }
