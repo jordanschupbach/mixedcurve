@@ -1,10 +1,4 @@
 library(mixedcurve)
-library(parallel)
-
-# source("./R/benchmarks.r")
-# source("./R/utils.r")
-# source("./R/formula.r")
-# source("./R/kernel.r")
 
 # {{{ Df1
 df1 <- gen_1d_fanova_data(
@@ -22,11 +16,14 @@ df1$nngrp <- sample(df1$grp, nrow(df1), replace = TRUE)
 # }}} Df1
 
 # {{{ lpk fit
-lpk1 <- lpk(y ~ K_h(x | grp),
-  queries = as.matrix(seq(0.0, 1.0, length.out = 200)),
-  data = df1, degree = 0, kernel = mixedcurve::gauss_kern,
-  h = 0.005, parallel = TRUE
-) # , cl = cl)
+time_took <- system.time({
+  lpk1 <- lpk(y ~ K_h(x | grp),
+    queries = as.matrix(seq(0.0, 1.0, length.out = 200)),
+    data = df1, degree = 0, kernel = mixedcurve::gauss_kern,
+    h = 0.005, parallel = TRUE
+  )
+})
+print(paste("Time took:", round(time_took[3], 2), "secs"))
 qs <- do.call(rbind, lapply(lpk1$queries, function(x) x$queries))
 plot(df1$x, df1$y, col = df1$grp, pch = 20)
 for (i in 1:3) {
