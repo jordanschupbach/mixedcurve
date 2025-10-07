@@ -17,16 +17,12 @@
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # }}} License
 
-# TODO: add function to parse lpk formulas
-
 # {{{ lpk
-
-
-#' Local polynomial Kernel regression query
+#' Local polynomial Kernel regression
 #'
 #' @param formula A formula object specifying the model to be fitted of the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on whether a grouping variable is present.
 #' @param degree An integer specifying the degree of the local polynomial (default is 0 for Nadaraya-Watson estimator).
-#' @param query A numeric vector giving the point to query (in R^d)
+#' @param queries A numeric vector of points at which to evaluate the fitted values.
 #' @param data A data frame containing the variables in the formula.
 #' @param h A positive numeric value representing the bandwidth for the kernel.
 lpk_query <- function(formula,
@@ -35,19 +31,12 @@ lpk_query <- function(formula,
                       degree = 0,
                       kernel = mixedcurve::gauss_kern,
                       h) {
-  # if (is.vector(queries)) {
-  #   queries <- as.matrix(queries)
-  # }
   terms <- parse_terms(formula)
-  # query <- queries[i, ]
   weighted_data <- lm_kernel_weights(formula,
     data = data,
-    bwidth = h,
-    query = query
+    bwidth = h, query = query
   )
-  # weighted_data
   lm_fit <- lm(w_y ~ . - 1, data = weighted_data)
-  # lm_fit
   list(
     lm = lm_fit, query = query,
     weights = weighted_data, coefs = coef(lm_fit),
@@ -58,23 +47,54 @@ lpk_query <- function(formula,
   )
 }
 
-
-
-#' Local polynomial Kernel regression
-#'
-#' @param formula A formula object specifying the model to be fitted of the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on whether a grouping variable is present.
-#' @param degree An integer specifying the degree of the local polynomial (default is 0 for Nadaraya-Watson estimator).
-#' @param queries A numeric vector of points at which to evaluate the fitted values.
-#' @param data A data frame containing the variables in the formula.
-#' @param h A positive numeric value representing the bandwidth for the kernel.
 lpk <- function(formula,
                 queries,
                 data,
                 degree = 0,
                 kernel = mixedcurve::gauss_kern,
                 h,
-                parallel = FALSE) {
-
+                parallel = TRUE, cl = NULL) {
+  datas <- data
+  if (parallel) {
+    if (is.null(cl)) {
+      cl <- makeCluster(detectCores() - 1, type = "PSOCK")
+      clusterEvalQ(cl, {
+        library(mixedcurve)
+      })
+      res <- parallel::parLapply(queries, function(q, datas) {
+        lpk_query(formula,
+          query = q,
+          data = datas,
+          degree = degree,
+          kernel = kernel,
+          h = h
+        )
+      }, cl = cl, datas = data)
+      on.exit(stopCluster(cl))
+    }
+    res <- parallel::parLapply(queries, function(q) {
+      lpk_query(formula,
+        query = q,
+        data = data,
+        degree = degree,
+        kernel = kernel,
+        h = h
+      )
+    }, cl = cl)
+  } else {
+    res <- lapply(queries, function(q) {
+      lpk_query(formula,
+        query = q,
+        data = data,
+        degree = degree,
+        kernel = kernel,
+        h = h
+      )
+    })
+  }
+  lpk_mod <- list(queries = res, formula = formula, bandwidth = h)
+  class(lpk_mod) <- "lpkMod"
+  lpk_mod
 }
 # }}} lpk
 
