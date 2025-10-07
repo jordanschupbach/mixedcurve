@@ -20,6 +20,46 @@
 # TODO: add function to parse lpk formulas
 
 # {{{ lpk
+
+
+#' Local polynomial Kernel regression query
+#'
+#' @param formula A formula object specifying the model to be fitted of the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on whether a grouping variable is present.
+#' @param degree An integer specifying the degree of the local polynomial (default is 0 for Nadaraya-Watson estimator).
+#' @param query A numeric vector giving the point to query (in R^d)
+#' @param data A data frame containing the variables in the formula.
+#' @param h A positive numeric value representing the bandwidth for the kernel.
+lpk_query <- function(formula,
+                      query,
+                      data,
+                      degree = 0,
+                      kernel = mixedcurve::gauss_kern,
+                      h) {
+  # if (is.vector(queries)) {
+  #   queries <- as.matrix(queries)
+  # }
+  terms <- parse_terms(formula)
+  # query <- queries[i, ]
+  weighted_data <- lm_kernel_weights(formula,
+    data = data,
+    bwidth = h,
+    query = query
+  )
+  # weighted_data
+  lm_fit <- lm(w_y ~ . - 1, data = weighted_data)
+  # lm_fit
+  list(
+    lm = lm_fit, query = query,
+    weights = weighted_data, coefs = coef(lm_fit),
+    queries = c(
+      coef(lm_fit)[1],
+      coef(lm_fit)[1] + coef(lm_fit)[2:length(coef(lm_fit))]
+    )
+  )
+}
+
+
+
 #' Local polynomial Kernel regression
 #'
 #' @param formula A formula object specifying the model to be fitted of the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on whether a grouping variable is present.

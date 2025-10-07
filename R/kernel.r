@@ -26,40 +26,113 @@
 #'
 #' @examples
 #' gauss_kern(0) # Should return 1
-#' gauss_kern(c(-1, 0, 1)) # Should return values for -1, 0, and 1
+# #' gauss_kern(c(-1, 0, 1)) # Should return values for -1, 0, and 1
 gauss_kern <- function(x) {
-  exp((-1 / 2) * ((x)^2))
+  if (is.vector(x)) {
+    x <- matrix(x, nrow = 1)
+  }
+  kernel_values <- apply(x, 1, function(row) {
+    exp((-1 / 2) * sum(row^2))
+  })
+  kernel_values
 }
+
+
 # }}} gauss_kern
 
 # {{{ k_h
 #' Scaled Gaussian kernel function
 #'
-#' This function computes the scaled Gaussian kernel value for a given input and bandwidth.
-#' @param x A numeric value or vector for which to compute the scaled Gaussian kernel.
-#' @param h A positive numeric value representing the bandwidth.
-#' @return The scaled Gaussian kernel value(s) corresponding to the input and bandwidth.
+#' This function computes the scaled Gaussian kernel value
+#' for a given input and bandwidth.
+#' @param x A numeric value or vector for which to compute
+#'          the scaled Gaussian kernel.
+#' @param h A positive numeric value representing the
+#'          bandwidth.
+#' @return The scaled Gaussian kernel value(s) corresponding
+#'         to the input and bandwidth.
 #'
 #' @examples
-#' k_h(0, 1) # Should return 1
-#' k_h(c(-1, 0, 1), 0.5) # Should return scaled values for -1, 0, and 1 with bandwidth 0.5
+#' kern_h(0, 1) # Should return 1
+#' kern_h(c(-1, 0, 1), 0.5)
 kern_h <- function(x, h, kern = gauss_kern) {
   kern(x / h) / h
 }
 # }}} k_h
 
 # {{{ lm_kernel_weights
-lm_kernel_weights <- function(dataframe, bwidth, query) {
-  design_matrix <- cbind(dataframe$y, model.matrix(~ grp, dataframe))
-  colnames(design_matrix) <- c("y", "intercept",
-                               paste("grp",
-                                     levels(dataframe$grp)[2:length(levels(dataframe$grp))],
-                                     sep = ""))
-  weights <- sqrt(k_h(dataframe$x - query, bwidth))
-  weighted_design_matrix <- sweep(design_matrix, 1, weights, FUN = "*")
-  colnames(weighted_design_matrix) <- paste("w_", colnames(design_matrix), sep = "")
+
+
+lm_kernel_weights <- function(form, data, bwidth, query) {
+  terms <- parse_terms(as.formula(form))
+  response_term <- terms[terms$type == "response", ]$lhs
+  kterm_lhs <- terms[terms$type == "kernel fixed effect", ]$lhs
+  kterm_rhs <- terms[terms$type == "kernel fixed effect", ]$rhs
+  dim_labels <- unlist(lapply(
+    strsplit(kterm_lhs, "\\*")[[1]],
+    function(s) trimws(s)
+  ))
+  if (sum(terms$type == "kernel fixed effect") == 0) {
+    stop("No kernel term found in the formula.
+Please include a term like K_h(x) or K_h(x | grp).")
+  }
+  if (sum(terms$type == "kernel fixed effect") > 1) {
+    stop("Multiple kernel terms found in the formula.
+Please include only one kernel term or a
+multi-dimensional kernel term (e.g., K_h(x * y)
+or K_h(x * y | grp)).")
+  }
+  if (length(dim_labels) == 0) {
+    stop("No dimension labels found in the kernel term.")
+  }
+  if (length(dim_labels) != length(query)) {
+    stop(paste0(
+      "Number of dimension labels (", length(dim_labels),
+      ") does not match dimension of query point (", length(query), ")."
+    ))
+  }
+  if (!all(dim_labels %in% colnames(data))) {
+    stop("Some dimension labels in the kernel term are not found in the data.")
+  }
+  dmat <- cbind(
+    data[[response_term]],
+    model.matrix(as.formula(paste0("~", kterm_rhs)), data)
+  )
+  colnames(dmat) <- c(
+    "y", "intercept",
+    unlist(lapply(
+      colnames(dmat)[3:length(colnames(dmat))],
+      function(x) {
+        if (grepl(":", x)) {
+          paste(paste0("", strsplit(x, ":")[[1]]),
+            collapse = ":"
+          )
+        } else {
+          paste0("", x)
+        }
+      }
+    ))
+  )
+  dim_data <- do.call(cbind, lapply(dim_labels, function(label) data[[label]]))
+  weights <- sqrt(kern_h(sweep(dim_data, 2, query, FUN = "-"), bwidth))
+  weighted_design_matrix <- sweep(dmat, 1, weights, FUN = "*")
+  colnames(weighted_design_matrix) <- paste("w_", colnames(dmat), sep = "")
   as.data.frame(weighted_design_matrix)
 }
+# lm_kernel_weights <- function(dataframe, bwidth, query) {
+#   dmat <- cbind(dataframe$y, model.matrix(~grp, dataframe))
+#   colnames(dmat) <- c(
+#     "y", "intercept",
+#     paste("grp",
+#       levels(dataframe$grp)[2:length(levels(dataframe$grp))],
+#       sep = ""
+#     )
+#   )
+#   weights <- sqrt(kern_h(dataframe$x - query, bwidth))
+#   weighted_design_matrix <- sweep(dmat, 1, weights, FUN = "*")
+#   colnames(weighted_design_matrix) <- paste("w_", colnames(dmat), sep = "")
+#   as.data.frame(weighted_design_matrix)
+# }
 
 # }}} lm_kernel_weights
 
