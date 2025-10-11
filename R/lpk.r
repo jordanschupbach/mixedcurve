@@ -18,11 +18,16 @@
 # }}} License
 
 # {{{ lpk
+
 #' Local polynomial Kernel regression
 #'
-#' @param formula A formula object specifying the model to be fitted of the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on whether a grouping variable is present.
-#' @param degree An integer specifying the degree of the local polynomial (default is 0 for Nadaraya-Watson estimator).
-#' @param queries A numeric vector of points at which to evaluate the fitted values.
+#' @param formula A formula object specifying the model to be fitted of
+#'                the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on
+#'                whether a grouping variable is present.
+#' @param degree An integer specifying the degree of the local polynomial
+#'               (default is 0 for Nadaraya-Watson estimator).
+#' @param queries A numeric vector of points at which to evaluate the fitted
+#'                values.
 #' @param data A data frame containing the variables in the formula.
 #' @param h A positive numeric value representing the bandwidth for the kernel.
 lpk_query <- function(formula,
@@ -38,7 +43,8 @@ lpk_query <- function(formula,
   )
   lm_fit <- lm(w_y ~ . - 1, data = weighted_data)
   list(
-    lm = lm_fit, query = query,
+    # lm = lm_fit,
+    query = query,
     weights = weighted_data, coefs = coef(lm_fit),
     queries = c(
       coef(lm_fit)[1],
@@ -96,6 +102,15 @@ lpk <- function(formula,
   class(lpk_mod) <- "lpkMod"
   lpk_mod
 }
+
+get_queries <- function(lpkmod) {
+  if (class(lpkmod) == "lpkMod") {
+    do.call(rbind, lapply(lpkmod$queries, function(x) x$queries))
+  } else {
+    stop("Object is not of class lpkMod")
+  }
+}
+
 # }}} lpk
 
 # {{{ glpk
@@ -118,6 +133,31 @@ glpk <- function(formula, degree = 0,
 # }}} lpk
 
 # {{{ lpkme
+
+lpkme_query <- function(formula,
+                        query,
+                        data,
+                        degree = 0,
+                        kernel = mixedcurve::gauss_kern,
+                        h) {
+  terms <- parse_terms(formula)
+  weighted_data <- lm_kernel_weights(formula,
+    data = data,
+    bwidth = h, query = query
+  )
+  lm_fit <- lmer(w_y ~ . - 1 + (w_intercept | ind / rep), data = weighted_data)
+  list(
+    query = query,
+    weights = weighted_data, coefs = coef(lm_fit),
+    queries = c(
+      coef(lm_fit)[1],
+      coef(lm_fit)[1] + coef(lm_fit)[2:length(coef(lm_fit))]
+    )
+  )
+}
+
+
+
 #' Local polynomial Kernel Mixed-Effect regression
 #'
 #' @param formula A formula object specifying the model to be fitted of the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on whether a grouping variable is present.
@@ -131,7 +171,9 @@ lpkme <- function(formula,
                   h,
                   degree = 0,
                   kernel = mixedcurve::gauss_kern,
-                  parallel = FALSE) { }
+                  parallel = FALSE) {
+
+}
 # }}} lpkme
 
 # {{{ glpkme

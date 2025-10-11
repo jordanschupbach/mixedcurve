@@ -14,7 +14,14 @@
         name = "mixedcurve";
         src = ./.;
         # TODO: add deps
+        buildInputs = [
+          pkgs.R
+          pkgs.rPackages.viridis
+        ];
       };
+      propagatedBuildInputs = [pkgs.rPackges.viridis];
+      nativeBuildInputs = [pkgs.rPackges.viridis];
+      # propagatedBuildInputs = with pkgs.rPackages; [viridis];
     in {
       devShells.default = pkgs.mkShell {
         nativeBuildInputs = [pkgs.bashInteractive];
@@ -24,9 +31,10 @@
           rPackages.devtools
           rPackages.covr
           rPackages.rmarkdown
-          rPackages.viridis
+          rPackages.roxygen2
           rPackages.knitr
           rPackages.geoR
+          rPackages.viridis
           pandoc
           entr
         ];

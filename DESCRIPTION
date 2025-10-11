@@ -6,7 +6,7 @@ Title: mixedcurve
 Author: Jordan Schupbach
 Maintainer: Jordan Schupbach <jordans1882@gmail.com>
 License: GPL3
-Depends: R (>= 3.1.0), parallel
+Depends: R (>= 3.1.0), parallel, viridis
 Suggests:
 LazyData: true
 RoxygenNote: 7.3.1

@@ -12,3 +12,6 @@ coverage:
 
 test:
     Rscript -e "devtools::test()"
+
+r-repl:
+    nix develop . --command bash -c "R"
