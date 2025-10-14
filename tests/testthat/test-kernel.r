@@ -1,10 +1,26 @@
-test_that("Sqrt(1) = 1", {
-  myfun <- mixedcurve::fun((function(x) sqrt(x)), dom = c(0, 1000))
-  expect_equal(myfun$f(1), 1)
-  expect_equal(myfun$dom[1], 0)
-  expect_equal(myfun$dom[2], 1000)
+
+test_that("GaussKern 1d", {
+  h <- runif(1)
+  pt <- runif(1)
+  qry <- runif(1)
+  x_diff <- pt - qry
+  squared_dist <- (x_diff / h)^2
+  k_weights <- exp(-(1 / 2) * squared_dist) / h
+  expect_equal(mixedcurve::kern_h(pt - qry, h, kern = mixedcurve::gauss_kern),
+               k_weights)
 })
 
-test_that("GaussKern 1", {
-  expect_equal(mixedcurve::gauss_kern(1), 0.6065307, tolerance = 1e-7)
+test_that("GaussKern 2d", {
+  h <- runif(1)
+  pt <- c(runif(1), runif(1))
+  qry <- c(runif(1), runif(1))
+  x_diff <- pt[1] - qry[1]
+  y_diff <- pt[2] - qry[2]
+  squared_dist <- ((x_diff / h)^2 + (y_diff / h)^2)
+  k_weights <- exp(-(1 / 2) * squared_dist) / h
+  expect_equal(mixedcurve::kern_h(pt - qry, h, kern = mixedcurve::gauss_kern),
+               k_weights)
 })
+
+
+

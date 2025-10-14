@@ -17,6 +17,8 @@
         buildInputs = [
           pkgs.R
           pkgs.rPackages.viridis
+          pkgs.rPackages.lme4
+          pkgs.rPackages.geoR
         ];
       };
       propagatedBuildInputs = [pkgs.rPackges.viridis];
@@ -35,6 +37,8 @@
           rPackages.knitr
           rPackages.geoR
           rPackages.viridis
+          rPackages.lme4
+          rPackages.dplyr
           pandoc
           entr
         ];

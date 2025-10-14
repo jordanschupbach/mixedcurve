@@ -176,10 +176,14 @@ m1_1d <- function(t, i) {
 }
 
 m1 <- function(t, i) {
-  if (is.matrix(t)) {
-    return(shift_and_rotate(m1_1d, dim = ncol(t))(t, i))  # Pass i through ...
-  } else if (is.vector(t) & !is.list(t)) {
-    return(m1_1d(t, i))
+  if (is.matrix(t) && ncol(t) > 1) {
+    shift_and_rotate(m1_1d, dim = ncol(t))(t, i)
+  } else if(is.matrix(t) && ncol(t) == 1) {
+    m1_1d(as.vector(t), i)
+  } else if (is.data.frame(t)) {
+    shift_and_rotate(m1_1d, dim = ncol(t))(as.matrix(t), i)
+  } else if (is.vector(t) && !is.list(t)) {
+    m1_1d(t, i)
   } else {
     stop("t must be a matrix or vector")
   }
@@ -204,10 +208,14 @@ m2_1d <- function(t, i) {
 }
 
 m2 <- function(t, i) {
-  if (is.matrix(t)) {
-    return(shift_and_rotate(m2_1d, dim = ncol(t))(t, i))  # Pass i through ...
-  } else if (is.vector(t) & !is.list(t)) {
-    return(m2_1d(t, i))
+  if (is.matrix(t) && ncol(t) > 1) {
+    shift_and_rotate(m2_1d, dim = ncol(t))(t, i)
+  } else if(is.matrix(t) && ncol(t) == 1) {
+    m2_1d(as.vector(t), i)
+  } else if (is.data.frame(t)) {
+    shift_and_rotate(m2_1d, dim = ncol(t))(as.matrix(t), i)
+  } else if (is.vector(t) && !is.list(t)) {
+    m2_1d(t, i)
   } else {
     stop("t must be a matrix or vector")
   }
@@ -232,8 +240,10 @@ m3_1d <- function(t, i) {
 }
 
 m3 <- function(t, i) {
-  if (is.matrix(t)) {
+  if (is.matrix(t) && ncol(t) > 1) {
     shift_and_rotate(m3_1d, dim = ncol(t))(t, i)
+  } else if(is.matrix(t) && ncol(t) == 1) {
+    m3_1d(as.vector(t), i)
   } else if (is.data.frame(t)) {
     shift_and_rotate(m3_1d, dim = ncol(t))(as.matrix(t), i)
   } else if (is.vector(t) && !is.list(t)) {
@@ -262,10 +272,14 @@ m4_1d <- function(t, i) {
 }
 
 m4 <- function(t, i) {
-  if (is.matrix(t)) {
-    return(shift_and_rotate(m4_1d, dim = ncol(t))(t, i))
-  } else if (is.vector(t) & !is.list(t)) {
-    return(m4_1d(t, i))
+  if (is.matrix(t) && ncol(t) > 1) {
+    shift_and_rotate(m4_1d, dim = ncol(t))(t, i)
+  } else if(is.matrix(t) && ncol(t) == 1) {
+    m4_1d(as.vector(t), i)
+  } else if (is.data.frame(t)) {
+    shift_and_rotate(m4_1d, dim = ncol(t))(as.matrix(t), i)
+  } else if (is.vector(t) && !is.list(t)) {
+    m4_1d(t, i)
   } else {
     stop("t must be a matrix or vector")
   }
@@ -290,10 +304,14 @@ m5_1d <- function(t, i) {
 }
 
 m5 <- function(t, i) {
-  if (is.matrix(t)) {
-    return(shift_and_rotate(m5_1d, dim = ncol(t))(t, i))
-  } else if (is.vector(t) & !is.list(t)) {
-    return(m5_1d(t, i))
+  if (is.matrix(t) && ncol(t) > 1) {
+    shift_and_rotate(m5_1d, dim = ncol(t))(t, i)
+  } else if(is.matrix(t) && ncol(t) == 1) {
+    m5_1d(as.vector(t), i)
+  } else if (is.data.frame(t)) {
+    shift_and_rotate(m5_1d, dim = ncol(t))(as.matrix(t), i)
+  } else if (is.vector(t) && !is.list(t)) {
+    m5_1d(t, i)
   } else {
     stop("t must be a matrix or vector")
   }
@@ -305,6 +323,7 @@ m5 <- function(t, i) {
 
 # {{{ generate fanova data
 
+# NOTE: deprecated
 gen_1d_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
                                n = 10, ngrp = 3, nx = 200,
                                balanced = FALSE, pgrp = sample,
@@ -361,6 +380,8 @@ gen_1d_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
 # }}} generate fanova data
 
 # {{{ gen_1d_mc_data_wn
+# NOTE: deprecated
+
 gen_1d_mc_data_wn <- function(m,
                               bounds = c(0, 1),
                               ngroups = 3, ni = 6, nj = 5, nk = 25,
@@ -387,6 +408,7 @@ gen_1d_mc_data_wn <- function(m,
   ret <- data.frame(x = x, y = y, ind = ind, grp = grp, rep = rep, id = id)
   list(df = ret, mu_i = mu_i, mu_j = mu_j, ytrue = ytrue)
 }
+
 # }}} gen_1d_mc_data_wn
 
 # {{{ gen_1d_mc_data_gp
@@ -556,8 +578,6 @@ gen_1d_mc_data_gp <- function(m, ngroups = 3, ni = 6, nj = 5, nk = 25,
 #' )
 #' mixedcurve::dark_mode()
 #' mixedcurve::plot.fundata(data2, ncurves = 9)
-
-
 gen_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
                             n = 10, ngrp = 3, nx = 200,
                             balanced = FALSE, pgrp = sample,
@@ -568,7 +588,7 @@ gen_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
                             px = runif,
                             pxargs = list(list(min = 0, max = 1)),
                             white_noise = TRUE,
-                            cov_scale = 0.05, gpn = 1000) {
+                            cov_scale = 0.05, gpn = 100) {
   if (is.vector(bounds) && !is.list(bounds)) {
     dims <- 1
     tbounds <- as.matrix(bounds, nrow = 1)
@@ -593,18 +613,42 @@ gen_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
   grplist <- list()
   idlist <- list()
   if (!white_noise) {
-    delta_i <- geoR::grf(gpn, nx = 1, grid = "reg",
-                         xlims = c(bounds[1], bounds[2]),
-                         cov.model = "gaussian",
-                         cov.pars = c(sigma, cov_scale),
-                         nugget = 0.0,
-                         nsim = ntotal, messages = FALSE)[[2]]
+    if(dims == 1) {
+      delta_i <- geoR::grf(gpn, nx = 1, grid = "reg",
+                           xlims = c(bounds[[1]][1], bounds[[1]][2]),
+                           cov.model = "gaussian",
+                           cov.pars = c(sigma, cov_scale),
+                           nugget = 0.0,
+                           nsim = ntotal, messages = FALSE)[[2]]
+    } else if(dims == 2) {
+      if(systematic) {
+        delta_i <- geoR::grf(nx = nx, ny = nx, grid = "reg",
+                             xlims = c(bounds[[1]][1], bounds[[1]][2]),
+                             ylims = c(bounds[[2]][1], bounds[[2]][2]),
+                             cov.model = "gaussian",
+                             cov.pars = c(sigma, cov_scale),
+                             nugget = 0.0,
+                             nsim = ntotal, messages = FALSE)[[2]]
+      } else {
+        delta_i <- geoR::grf(nx = gpn, ny = gpn, grid = "reg",
+                             xlims = c(bounds[[1]][1], bounds[[1]][2]),
+                             ylims = c(bounds[[2]][1], bounds[[2]][2]),
+                             cov.model = "gaussian",
+                             cov.pars = c(sigma, cov_scale),
+                             nugget = 0.0,
+                             nsim = ntotal, messages = FALSE)[[2]]
+      }
+    } else {
+      stop("Currently only 1D and 2D data supported for spatial noise.")
+    }
   }
   for (i in 1:ntotal) {
     if (systematic) {
       txlist <- list(seq(tbounds[1, 1], tbounds[1, 2], length.out = nx))
-      for (d in 2:dims) {
-        txlist[[d]] <- seq(tbounds[d, 1], tbounds[d, 2], length.out = nx)
+      if (dims > 1) {
+        for (d in 2:dims) {
+          txlist[[d]] <- seq(tbounds[d, 1], tbounds[d, 2], length.out = nx)
+        }
       }
       xlist[[i]] <- as.matrix(expand.grid(txlist))
     } else {
@@ -620,20 +664,37 @@ gen_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
     grplist[[i]] <- rep(grps[i], each = nrow(xlist[[i]]))
     ylist[[i]] <- f(xlist[[i]], grps[i])
     if (white_noise) {
-      ylist[[i]] <- ylist[[i]] + rnorm(nx, 0, sigma)
+      tnxy <- nx ^ dims
+      ylist[[i]] <- ylist[[i]] + rnorm(length(ylist[[i]]), 0, sigma)
     } else {
-      grid_points <- seq(bounds[1], bounds[2], length.out = gpn)
-      idx <- sapply(xlist[[i]], function(xi) {
-        which.min(abs(grid_points - xi))
-      })
-      ylist[[i]] <- ylist[[i]] + delta_i[idx, i]
+      if(dims == 1) {
+        grid_points <- seq(bounds[[1]][1], bounds[[1]][2], length.out = gpn)
+        idx <- sapply(xlist[[i]], function(xi) {
+          which.min(abs(grid_points - xi))
+        })
+      }
+      if(dims == 1) {
+        ylist[[i]] <- ylist[[i]] + delta_i[idx, i]
+      } else if(dims == 2) {
+        if(!systematic) {
+        grid_points <- expand.grid(seq(bounds[[1]][1], bounds[[1]][2], length.out = gpn),
+                                   seq(bounds[[2]][1], bounds[[2]][2], length.out = gpn))
+        # NOTE: changed here, may mess up other cases
+        idx <- unlist(sapply(1:nrow(xlist[[i]]), function(j) {
+          which.min(sqrt((grid_points[j, 1] - xlist[[i]][j, 1])^2 +
+                           (grid_points[j,1] - xlist[[i]][j, 2])^2))
+        }))
+        ylist[[i]] <- ylist[[i]] + delta_i[idx, i]
+        } else {
+          ylist[[i]] <- ylist[[i]] + delta_i[, i]
+        }
+      }
     }
     idlist[[i]] <- rep(i, nrow(xlist[[i]]))
   }
   tx <- do.call(rbind, xlist)
   ret <- data.frame(y = unlist(ylist),
-                    grp = as.factor(unlist(grplist)),
-                    id = as.factor(unlist(idlist)))
+                    grp = as.factor(unlist(grplist)), id = as.factor(unlist(idlist)))
   if (dims == 1) {
     ret$x1 <- as.vector(tx)
   } else {
@@ -641,50 +702,93 @@ gen_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
       ret[[paste0("x", d)]] <- as.vector(tx[, d])
     }
   }
-  coreset <- ret[(0:(ntotal - 1)) * nx + 1, ]
+  if(systematic) {
+    nxy <- nx ^ dims
+  } else {
+    nxy <- nx
+  }
+  coreset <- ret[(0:(ntotal - 1)) * nxy + 1, ]
   structure(list(df = ret, coreset = coreset,
-                 dims = dims, nx = nx, systematic = systematic),
+                 curves = list(y = ylist, x = xlist),
+                 dims = dims, nx = nx, systematic = systematic,
+                 grps = grps
+                 ),
             class = "fundata")
 }
 
-plot.fundata <- function(fundata, ncurves = 1) {
+plot.fundata <- function(fundata, curves, color_scale = NULL) {
   if (fundata$dims == 1) {
-    stop("plot.fundata() is implemented for 2d data only (TODO)")
+    tdf <- fundata$df
+    tcurves <- fundata$curves
+    tcoreset <- fundata$coreset
+    nxy <- fundata$nx
+    if(fundata$systematic) {
+      for (i in curves) {
+        plot(tcurves$x[[i]], 
+              tdf$y[((i - 1) * nxy + 1):(i * nxy)], 
+              lwd = 2,
+              type = 'l',
+              xlab = "x", ylab = "y",
+              main = paste("Sample", i, " (Group",
+                           tcoreset$grp[i], ")", sep = ""),
+             ylim = range(tdf$y)
+        )
+      }
+    } else {
+      for (i in curves) {
+        ord <- order(tcurves$x[[i]])
+        plot(tcurves$x[[i]][ord], 
+              tdf$y[((i - 1) * nxy + 1):(i * nxy)][ord], 
+              lwd = 2,
+              type = 'l',
+              xlab = "x", ylab = "y",
+              main = paste("Sample", i, " (Group",
+                           tcoreset$grp[i], ")", sep = ""),
+             ylim = range(tdf$y)
+        )
+      }
+    }
   } else if (fundata$dims == 2) {
     if (fundata$systematic) {
       nxy <- fundata$nx
-      df2 <- data2$df
-      color_scale <- viridis::viridis(100)
+      df2 <- fundata$df
+      tcoreset <- fundata$coreset
+      tcurves <- fundata$curves
+      if(is.null(color_scale)) {
+        color_scale <- viridis::viridis(100)
+      }
       breaks <- seq(min(df2$y), max(df2$y), length.out = 101)
-      for (i in 1:ncurves) {
-        image(matrix(df2$y[((i - 1) * nxy * nxy + 1):(i * nxy * nxy)],
+      for (i in curves) {
+        image(matrix(tcurves$y[[i]],
                      nxy, nxy, byrow = TRUE),
               xlab = "x1", ylab = "x2",
               main = paste("Sample ", i, " (Group",
-                           df2$grp[((i - 1) * nxy * nxy + 1)], ")", sep = ""),
+                           tcoreset$grp[i], ")", sep = ""),
               col = color_scale,
               breaks = breaks
         )
       }
     } else {
-      df2 <- data2$df
-      dfcs2 <- data2$coreset
-      nxy <- data2$nx
-      layout(mixedcurve::gen_square_layout(ncurves))
-      color_scale <- viridis::viridis(100)
-      color_values <- cut(df2$y, breaks = 100, labels = FALSE)
-      for (i in 1:ncurves) {
-        plot(df2$x1[((i - 1) * nxy + 1):((i) * nxy)],
-             df2$x2[((i - 1) * nxy + 1):((i) * nxy)],
+      tdf <- fundata$df
+      tcurves <- fundata$curves
+      tcoreset <- fundata$coreset
+      nxy <- fundata$nx
+      if(is.null(color_scale)) {
+        color_scale <- viridis::viridis(100)
+      }
+      color_values <- cut(tdf$y, breaks = 100, labels = FALSE)
+      for (i in curves) {
+        plot(tcurves$x[[i]][, 1],
+             tcurves$x[[i]][, 2],
              col = color_scale[color_values[((i - 1) * nxy + 1):((i) * nxy)]],
              pch = 20, cex = 2, xlab = "x1",
              ylab = "x2", main = paste("Sample", i,
-                                       " (Group", df2$grp[((i - 1) * nxy + 1)], ")", sep = "")
+                                       " (Group", tcoreset$grp[i], ")", sep = "")
              )
       }
     }
   } else {
-    stop("plot.fundata() is implemented for 2d data only (TODO)")
+    stop("plot.fundata() is implemented for 2D data only (TODO)")
   }
 }
 

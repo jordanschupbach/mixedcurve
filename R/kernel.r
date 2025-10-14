@@ -62,7 +62,6 @@ kern_h <- function(x, h, kern = gauss_kern) {
 
 # {{{ lm_kernel_weights
 
-
 lm_kernel_weights <- function(form, data, bwidth, query) {
   terms <- parse_terms(as.formula(form))
   response_term <- terms[terms$type == "response", ]$lhs
@@ -86,6 +85,7 @@ or K_h(x * y | grp)).")
     stop("No dimension labels found in the kernel term.")
   }
   if (length(dim_labels) != length(query)) {
+    print(str(query))
     stop(paste0(
       "Number of dimension labels (", length(dim_labels),
       ") does not match dimension of query point (", length(query), ")."
@@ -119,20 +119,6 @@ or K_h(x * y | grp)).")
   colnames(weighted_design_matrix) <- paste("w_", colnames(dmat), sep = "")
   as.data.frame(weighted_design_matrix)
 }
-# lm_kernel_weights <- function(dataframe, bwidth, query) {
-#   dmat <- cbind(dataframe$y, model.matrix(~grp, dataframe))
-#   colnames(dmat) <- c(
-#     "y", "intercept",
-#     paste("grp",
-#       levels(dataframe$grp)[2:length(levels(dataframe$grp))],
-#       sep = ""
-#     )
-#   )
-#   weights <- sqrt(kern_h(dataframe$x - query, bwidth))
-#   weighted_design_matrix <- sweep(dmat, 1, weights, FUN = "*")
-#   colnames(weighted_design_matrix) <- paste("w_", colnames(dmat), sep = "")
-#   as.data.frame(weighted_design_matrix)
-# }
 
 # }}} lm_kernel_weights
 

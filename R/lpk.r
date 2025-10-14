@@ -43,12 +43,12 @@ lpk_query <- function(formula,
   )
   lm_fit <- lm(w_y ~ . - 1, data = weighted_data)
   list(
-    # lm = lm_fit,
     query = query,
     weights = weighted_data, coefs = coef(lm_fit),
     queries = c(
-      coef(lm_fit)[1],
-      coef(lm_fit)[1] + coef(lm_fit)[2:length(coef(lm_fit))]
+      coef(lm_fit)[1], 
+      sapply(2:length(coef(lm_fit)),
+             function(i) coef(lm_fit)[1] + coef(lm_fit)[i])
     )
   )
 }
@@ -60,14 +60,21 @@ lpk <- function(formula,
                 kernel = mixedcurve::gauss_kern,
                 h,
                 parallel = TRUE, cl = NULL) {
+  if(is.matrix(queries)){
+    tqueries <- split(queries, seq(nrow(queries)))
+  } else if(is.vector(queries)){
+    tqueries <- as.list(queries)
+  } else {
+    stop("tqueries must be a matrix or a vector")
+  }
   datas <- data
   if (parallel) {
     if (is.null(cl)) {
-      cl <- makeCluster(detectCores() - 1, type = "PSOCK")
-      clusterEvalQ(cl, {
+      cl <- parallel::makeCluster(parallel::detectCores() - 1, type = "PSOCK")
+      parallel::clusterEvalQ(cl, {
         library(mixedcurve)
       })
-      res <- parallel::parLapply(queries, function(q, datas) {
+      res <- parallel::parLapply(tqueries, function(q, datas) {
         lpk_query(formula,
           query = q,
           data = datas,
@@ -76,9 +83,9 @@ lpk <- function(formula,
           h = h
         )
       }, cl = cl, datas = data)
-      on.exit(stopCluster(cl))
+      on.exit(parallel::stopCluster(cl))
     }
-    res <- parallel::parLapply(queries, function(q) {
+    res <- parallel::parLapply(tqueries, function(q) {
       lpk_query(formula,
         query = q,
         data = data,
@@ -88,7 +95,7 @@ lpk <- function(formula,
       )
     }, cl = cl)
   } else {
-    res <- lapply(queries, function(q) {
+    res <- lapply(tqueries, function(q) {
       lpk_query(formula,
         query = q,
         data = data,
