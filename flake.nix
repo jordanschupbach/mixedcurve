@@ -18,7 +18,10 @@
           pkgs.R
           pkgs.rPackages.viridis
           pkgs.rPackages.lme4
+          pkgs.rPackages.nloptr
           pkgs.rPackages.geoR
+          pkgs.rPackages.languageserver
+          pkgs.nlopt
         ];
       };
       propagatedBuildInputs = [pkgs.rPackges.viridis];
@@ -39,7 +42,10 @@
           rPackages.viridis
           rPackages.lme4
           rPackages.dplyr
+          rPackages.nloptr
+          rPackages.languageserver
           pandoc
+          nlopt
           entr
         ];
       };
