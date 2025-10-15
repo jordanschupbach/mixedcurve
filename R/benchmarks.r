@@ -578,17 +578,20 @@ gen_1d_mc_data_gp <- function(m, ngroups = 3, ni = 6, nj = 5, nk = 25,
 #' )
 #' mixedcurve::dark_mode()
 #' mixedcurve::plot.fundata(data2, ncurves = 9)
-gen_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
+gen_fanova_data <- function(f = mixedcurve::m3, bounds = c(0, 1),
                             n = 10, ngrp = 3, nx = 200,
-                            balanced = FALSE, pgrp = sample,
-                            pgrpargs = list(x = 1:3,
-                                            size = 10,
-                                            replace = TRUE),
+                            balanced = FALSE, 
                             sigma = 0.05, systematic = FALSE,
                             px = runif,
                             pxargs = list(list(min = 0, max = 1)),
                             white_noise = TRUE,
-                            cov_scale = 0.05, gpn = 100) {
+                            cov_scale = 0.05, gpn = 100, family = "gaussian",
+                            pgrp = NULL,
+                            pgrpargs = NULL
+                            ) {
+  if(is.null(pgrp) & !is.null(pgrpargs) || !is.null(pgrp) & is.null(pgrpargs)) {
+    stop("Both pgrp and pgrpargs must be provided or both must be NULL.")
+  }
   if (is.vector(bounds) && !is.list(bounds)) {
     dims <- 1
     tbounds <- as.matrix(bounds, nrow = 1)
@@ -603,9 +606,16 @@ gen_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
   }
   if (balanced) {
     ntotal <- n * ngrp
-    grps <- rep(1:ngrp, each = n)
   } else {
     ntotal <- n
+  }
+  if(is.null(pgrp)) {
+    pgrp <- sample
+    pgrpargs <- list(x = 1:ngrp, size = ntotal, replace = TRUE)
+  }
+  if (balanced) {
+    grps <- rep(1:ngrp, each = n)
+  } else {
     grps <- do.call(pgrp, pgrpargs)
   }
   ylist <- list()
@@ -666,6 +676,16 @@ gen_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
     if (white_noise) {
       tnxy <- nx ^ dims
       ylist[[i]] <- ylist[[i]] + rnorm(length(ylist[[i]]), 0, sigma)
+      if(family != "gaussian") {
+        if(family == "poisson") {
+          ylist[[i]] <- rpois(length(ylist[[i]]), lambda = ylist[[i]])
+        } else if(family == "binomial") {
+          ylist[[i]] <- rbinom(length(ylist[[i]]), size = 1,
+                               prob = ylist[[i]])
+        } else {
+          stop("Currently only gaussian, poisson, and binomial families are supported.")
+        }
+      }
     } else {
       if(dims == 1) {
         grid_points <- seq(bounds[[1]][1], bounds[[1]][2], length.out = gpn)
@@ -687,6 +707,16 @@ gen_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
         ylist[[i]] <- ylist[[i]] + delta_i[idx, i]
         } else {
           ylist[[i]] <- ylist[[i]] + delta_i[, i]
+        }
+      }
+      if(family != "gaussian") {
+        if(family == "poisson") {
+          ylist[[i]] <- rpois(length(ylist[[i]]), lambda = ylist[[i]])
+        } else if(family == "binomial") {
+          ylist[[i]] <- rbinom(length(ylist[[i]]), size = 1,
+                               prob = ylist[[i]])
+        } else {
+          stop("Currently only gaussian, poisson, and binomial families are supported.")
         }
       }
     }
@@ -711,7 +741,8 @@ gen_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
   structure(list(df = ret, coreset = coreset,
                  curves = list(y = ylist, x = xlist),
                  dims = dims, nx = nx, systematic = systematic,
-                 grps = grps
+                 grps = grps,
+                 family = family
                  ),
             class = "fundata")
 }

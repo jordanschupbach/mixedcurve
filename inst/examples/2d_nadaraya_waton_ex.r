@@ -25,7 +25,6 @@ lpk2 <- mixedcurve::lpk(y ~ K_h(x1 * x2 | grp),
   data = fundata1$df, degree = 0, kernel = mixedcurve::gauss_kern,
   h = c(0.05, 0.05), parallel = TRUE
 )
-
 # move this to plot method?
 qrs <- mixedcurve::get_queries(lpk2)
 all_values <- c(qrs[, 1], qrs[, 2], qrs[, 3])
@@ -33,10 +32,8 @@ breaks <- seq(min(all_values), max(all_values), length.out = 101)
 colors <- viridis::viridis(100)
 par(mfrow = c(1, 3))
 for (i in 1:3) {
-  image(matrix(qrs[, i], 20, 20), col = colors, breaks = breaks, axes = FALSE, main = paste("Image", i))
+  image(matrix(qrs[, i], 20, 20), col = colors, breaks = breaks,
+        axes = FALSE, main = paste("Image", i))
 }
-
-
-
 
 
