@@ -348,16 +348,6 @@ mixedcurve::dark_mode()
 layout(mixedcurve::gen_square_layout(6))
 mixedcurve::plot.fundata(data1, curves = 1:6)
 
-
-# delta_i <- geoR::grf(1000, nx = 10, ny = 10, grid = "reg",
-#                      xlims = c(0, 1),
-#                      ylims = c(0, 1),
-#                      cov.model = "gaussian",
-#                      cov.pars = c(0.001, 0.25),
-#                      nugget = 0.0,
-#                      nsim = 10, messages = FALSE)[[2]]
-# image(matrix(delta_i[,1], 10, 10))
-
 # }}} 5) gen 2d systematic data
 
 # {{{ 6) gen 2d nonsystematic, white noise
@@ -407,8 +397,8 @@ mixedcurve::plot.fundata(data1, curves = 1:6)
 
 # }}} 7) gen 2d systematic, gaussian process
 
-# {{{ 8) gen 2d nonsystematic, gaussian process # BUG: something off here... the colors don't seem right?
-
+# {{{ 8) gen 2d nonsystematic, gaussian process
+# BUG: something off here... the colors don't seem right?
 nxy <- 5000
 data2 <- mixedcurve::gen_fanova_data(
   f = mixedcurve::m2, bounds = list(c(0, 1), c(0, 1)),

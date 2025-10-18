@@ -1,4 +1,3 @@
-
 test_that("GaussKern 1d", {
   h <- runif(1)
   pt <- runif(1)
@@ -6,8 +5,10 @@ test_that("GaussKern 1d", {
   x_diff <- pt - qry
   squared_dist <- (x_diff / h)^2
   k_weights <- exp(-(1 / 2) * squared_dist) / h
-  expect_equal(mixedcurve::kern_h(pt - qry, h, kern = mixedcurve::gauss_kern),
-               k_weights)
+  expect_equal(
+    mixedcurve::kern_h(pt - qry, h, kern = mixedcurve::gauss_kern),
+    k_weights
+  )
 })
 
 test_that("GaussKern 2d", {
@@ -18,9 +19,8 @@ test_that("GaussKern 2d", {
   y_diff <- pt[2] - qry[2]
   squared_dist <- ((x_diff / h)^2 + (y_diff / h)^2)
   k_weights <- exp(-(1 / 2) * squared_dist) / h
-  expect_equal(mixedcurve::kern_h(pt - qry, h, kern = mixedcurve::gauss_kern),
-               k_weights)
+  expect_equal(
+    mixedcurve::kern_h(pt - qry, h, kern = mixedcurve::gauss_kern),
+    k_weights
+  )
 })
-
-
-

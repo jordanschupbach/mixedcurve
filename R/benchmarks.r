@@ -2,17 +2,17 @@
 
 # {{{ License
 # Copyright (C) <2025>  <Jordan Schupbach>
-# 
+#
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 3 of the License, or
 #     (at your option) any later version.
-# 
+#
 #     This program is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
-# 
+#
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # }}} License
@@ -84,76 +84,37 @@ mdoppler_1d <- function(x, alpha = 20, beta = 0.25) {
 #' function around the center of the unit cube.
 #
 #' @param x A numeric matrix of points in [0, 1]^d or a numeric vector in [0, 1]
-#' @param alpha A numeric value controlling the frequency of oscillations (default is 20)
-#' @param beta A numeric value controlling the shift of the function (default is 0.25)
-#' @return A numeric vector of the same length as the number of rows in x (if x is a matrix)
+#' @param alpha A numeric value controlling the frequency
+#'              of oscillations (default is 20)
+#' @param beta A numeric value controlling the shift of
+#'             the function (default is 0.25)
+#' @return A numeric vector of the same length as the number
+#'         of rows in x (if x is a matrix)
 #' or the same length as x (if x is a vector)
 #' @export
 #'
 #' @examples
 #' # 2d example
 #' neval <- 100
-#' image(matrix(mixedcurve::mdoppler(as.matrix(expand.grid(seq(0, 1, length.out = neval),
-#'                                seq(0, 1, length.out = neval)))),
+#' image(matrix(mixedcurve::mdoppler(
+#'   as.matrix(expand.grid(seq(0, 1, length.out = neval),
+#'                         seq(0, 1, length.out = neval)))),
 #'        nrow = neval, ncol = neval))
 #'
 #' # 1d example
 #' neval <- 1000
 #' xseq <- seq(0, 1, length.out = neval)
-#' plot(xseq, mixedcurve::mdoppler(xseq), type = 'l', xlab ='x', ylab = 'mdoppler(x)', main = 'Modified Doppler Function (1d)')
+#' plot(xseq, mixedcurve::mdoppler(xseq), type = 'l', xlab ='x',
+#'      ylab = 'mdoppler(x)', main = 'Modified Doppler Function (1d)')
 mdoppler <- function(x, alpha = 20, beta = 0.25) { # add dom
-  if(is.matrix(x)) {
-    return(shift_and_rotate(mdoppler_1d, dim = ncol(x))(x))
-  } else if(is.vector(x) & !is.list(x)) {
+  if (is.matrix(x)) {
+    shift_and_rotate(mdoppler_1d, dim = ncol(x))(x)
+  } else if (is.vector(x) && !is.list(x)) {
     return(mdoppler_1d(x, alpha, beta))
-  }
-  else {
+  } else {
     stop("x must be a matrix or vector")
   }
 }
-
-### #' Modified doppler function (generalized to any dim)
-### #'
-### #' A modification of the doppler function (see Donoho and Johnstone 1994)
-### #' generalized to any dimension. The generalization involves rotating the 1d
-### #' function around the center of the unit cube.
-### #
-### #' @param x A numeric matrix of points in [0, 1]^d or a numeric vector in [0, 1]
-### #' @param alpha A numeric value controlling the frequency of oscillations (default is 20)
-### #' @param beta A numeric value controlling the shift of the function (default is 0.25)
-### #' @return A numeric vector of the same length as the number of rows in x (if x is a matrix)
-### #' or the same length as x (if x is a vector)
-### #' @export
-### #'
-### #' @examples
-### #' # 2d example
-### #' neval <- 100
-### #' image(matrix(mixedcurve::mdoppler(as.matrix(expand.grid(seq(0, 1, length.out = neval),
-### #'                                seq(0, 1, length.out = neval)))),
-### #'        nrow = neval, ncol = neval))
-### #'
-### #' # 1d example
-### #' neval <- 1000
-### #' xseq <- seq(0, 1, length.out = neval)
-### #' plot(xseq, mixedcurve::mdoppler(xseq), type = 'l', xlab ='x', ylab = 'mdoppler(x)', main = 'Modified Doppler Function (1d)')
-### mdoppler <- function(x, alpha = 20, beta = 0.25) {
-###   if (is.matrix(x)) {
-###     dim <- ncol(x)
-###     return(apply(x, 1, 
-###           function(tx) {
-###             sin(alpha/(mixedcurve::distance(tx, rep(0.5, dim)) + beta)) * 
-###               (mixedcurve::distance(rep(0, dim), rep(1, dim)) / 2)
-###           }))
-###   } else if(is.vector(x) & !is.list(x)) {
-###     return(apply(as.matrix(x), 1, 
-###           function(tx) {
-###             sin(alpha/(tx + beta))
-###           }))
-###   }
-###   else {
-###     stop("x must be a matrix or vector")
-###   }
-### }
 
 # }}} mdoppler (multi-d)
 
@@ -167,10 +128,12 @@ mdoppler <- function(x, alpha = 20, beta = 0.25) { # add dom
 #' @return A numeric vector of the same length as t
 #' @examples
 #' x <- seq(0, 1, length.out = 100)
-#' plot(x, mixedcurve::m1(x, 1), type = 'l', xlab ='t', ylab = 'm1(t,i)', main = 'Cuevas: m1(t,i)')
+#' plot(x, mixedcurve::m1(x, 1), type = "l", xlab = "t",
+#'      ylab = "m1(t, i)", main = "Cuevas: m1(t, i)")
 #' lines(x, mixedcurve::m1(x, 2), col = 2)
 #' lines(x, mixedcurve::m1(x, 3), col = 3)
-#' legend("topright", legend = c("m1(t,1)", "m1(t,2)", "m1(t,3)"), col = 1:3, lty = 1)
+#' legend("topright", legend = c("m1(t, 1)", "m1(t, 2)", "m1(t, 3)"),
+#'        col = 1:3, lty = 1)
 m1_1d <- function(t, i) {
   t * (1 - t)
 }
@@ -178,7 +141,7 @@ m1_1d <- function(t, i) {
 m1 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
     shift_and_rotate(m1_1d, dim = ncol(t))(t, i)
-  } else if(is.matrix(t) && ncol(t) == 1) {
+  } else if (is.matrix(t) && ncol(t) == 1) {
     m1_1d(as.vector(t), i)
   } else if (is.data.frame(t)) {
     shift_and_rotate(m1_1d, dim = ncol(t))(as.matrix(t), i)
@@ -199,10 +162,12 @@ m1 <- function(t, i) {
 #' @return A numeric vector of the same length as t
 #' @examples
 #' x <- seq(0, 1, length.out = 100)
-#' plot(x, mixedcurve::m2(x, 1), type = 'l', xlab ='t', ylab = 'm2(t,i)', main = 'Cuevas: m2(t,i)')
+#' plot(x, mixedcurve::m2(x, 1), type = "l", xlab = "t",
+#'      ylab = "m2(t, i)", main = "Cuevas: m2(t, i)")
 #' lines(x, mixedcurve::m2(x, 2), col = 2)
 #' lines(x, mixedcurve::m2(x, 3), col = 3)
-#' legend("topright", legend = c("m2(t,1)", "m2(t,2)", "m2(t,3)"), col = 1:3, lty = 1)
+#' legend("topright", legend = c("m2(t,1)", "m2(t,2)", "m2(t,3)"),
+#'        col = 1:3, lty = 1)
 m2_1d <- function(t, i) {
   t^i * (1 - t)^(6 - i)
 }
@@ -210,7 +175,7 @@ m2_1d <- function(t, i) {
 m2 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
     shift_and_rotate(m2_1d, dim = ncol(t))(t, i)
-  } else if(is.matrix(t) && ncol(t) == 1) {
+  } else if (is.matrix(t) && ncol(t) == 1) {
     m2_1d(as.vector(t), i)
   } else if (is.data.frame(t)) {
     shift_and_rotate(m2_1d, dim = ncol(t))(as.matrix(t), i)
@@ -231,18 +196,19 @@ m2 <- function(t, i) {
 #' @return A numeric vector of the same length as t
 #' @examples
 #' x <- seq(0, 1, length.out = 100)
-#' plot(x, mixedcurve::m3(x, 1), type = 'l', xlab ='t', ylab = 'm3(t,i)', main = 'Cuevas: m3(t,i)')
+#' plot(x, mixedcurve::m3(x, 1), type = "l", xlab = "t",
+#'      ylab = "m3(t, i)", main = "Cuevas: m3(t, i)")
 #' lines(x, mixedcurve::m3(x, 2), col = 2)
 #' lines(x, mixedcurve::m3(x, 3), col = 3)
-#' legend("topright", legend = c("m3(t,1)", "m3(t,2)", "m3(t,3)"), col = 1:3, lty = 1)
+#' legend("topright", legend = c("m3(t, 1)", "m3(t, 2)", "m3(t, 3)"),
+#'        col = 1:3, lty = 1)
 m3_1d <- function(t, i) {
   t^(i / 5) * (1 - t)^(6 - i / 5)
 }
-
 m3 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
     shift_and_rotate(m3_1d, dim = ncol(t))(t, i)
-  } else if(is.matrix(t) && ncol(t) == 1) {
+  } else if (is.matrix(t) && ncol(t) == 1) {
     m3_1d(as.vector(t), i)
   } else if (is.data.frame(t)) {
     shift_and_rotate(m3_1d, dim = ncol(t))(as.matrix(t), i)
@@ -263,18 +229,19 @@ m3 <- function(t, i) {
 #' @return A numeric vector of the same length as t
 #' @examples
 #' x <- seq(0, 1, length.out = 100)
-#' plot(x, mixedcurve::m4(x, 1), type = 'l', xlab ='t', ylab = 'm4(t,i)', main = 'Cuevas: m4(t,i)')
+#' plot(x, mixedcurve::m4(x, 1), type = "l", xlab = "t",
+#'      ylab = "m4(t, i)", main = "Cuevas: m4(t, i)")
 #' lines(x, mixedcurve::m4(x, 2), col = 2)
 #' lines(x, mixedcurve::m4(x, 3), col = 3)
-#' legend("topright", legend = c("m4(t,1)", "m4(t,2)", "m4(t,3)"), col = 1:3, lty = 1)
+#' legend("topright", legend = c("m4(t, 1)", "m4(t, 2)", "m4(t, 3)"),
+#'        col = 1:3, lty = 1)
 m4_1d <- function(t, i) {
   rep(1 + i / 50, length(t))
 }
-
 m4 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
     shift_and_rotate(m4_1d, dim = ncol(t))(t, i)
-  } else if(is.matrix(t) && ncol(t) == 1) {
+  } else if (is.matrix(t) && ncol(t) == 1) {
     m4_1d(as.vector(t), i)
   } else if (is.data.frame(t)) {
     shift_and_rotate(m4_1d, dim = ncol(t))(as.matrix(t), i)
@@ -295,18 +262,19 @@ m4 <- function(t, i) {
 #' @return A numeric vector of the same length as t
 #' @examples
 #' x <- seq(0, 1, length.out = 100)
-#' plot(x, mixedcurve::m5(x, 1), type = 'l', xlab ='t', ylab = 'm5(t,i)', main = 'Cuevas: m5(t,i)', ylim = c(0, 0.1))
+#' plot(x, mixedcurve::m5(x, 1), type = "l", xlab = "t",
+#'      ylab = "m5(t, i)", main = "Cuevas: m5(t, i)", ylim = c(0, 0.1))
 #' lines(x, mixedcurve::m5(x, 2), col = 2)
 #' lines(x, mixedcurve::m5(x, 3), col = 3)
-#' legend("topright", legend = c("m5(t,1)", "m5(t,2)", "m5(t,3)"), col = 1:3, lty = 1)
-m5_1d <- function(t, i) {
-  (i - 1) * 0.01 * dbeta(t, 6, 6)
-}
-
+#' legend("topright", legend = c("m5(t,1)", "m5(t,2)", "m5(t,3)"),
+#'        col = 1:3, lty = 1)
+#' m5_1d <- function(t, i) {
+#'   (i - 1) * 0.01 * dbeta(t, 6, 6)
+#' }
 m5 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
     shift_and_rotate(m5_1d, dim = ncol(t))(t, i)
-  } else if(is.matrix(t) && ncol(t) == 1) {
+  } else if (is.matrix(t) && ncol(t) == 1) {
     m5_1d(as.vector(t), i)
   } else if (is.data.frame(t)) {
     shift_and_rotate(m5_1d, dim = ncol(t))(as.matrix(t), i)
@@ -380,8 +348,7 @@ gen_1d_fanova_data <- function(f = tmc::m3, bounds = c(0, 1),
 # }}} generate fanova data
 
 # {{{ gen_1d_mc_data_wn
-# NOTE: deprecated
-
+# NOTE: this is deprecated
 gen_1d_mc_data_wn <- function(m,
                               bounds = c(0, 1),
                               ngroups = 3, ni = 6, nj = 5, nk = 25,
@@ -394,7 +361,7 @@ gen_1d_mc_data_wn <- function(m,
   grp <- factor(rep(sample(1:ngroups, ni * nj, replace = TRUE), each = nk))
   mu_j <- rnorm(ni * nj, mean = 0, sd = rep_tau)
   mu_i <- rnorm(ni, mean = 0, sd = ind_tau)
-  if(systematic) {
+  if (systematic) {
     x <- rep(seq(bounds[1], bounds[2], length.out = nk), times = ni * nk)
   } else {
     x <- runif(n, bounds[1], bounds[2])
@@ -419,10 +386,10 @@ gen_1d_mc_data_gp <- function(m, ngroups = 3, ni = 6, nj = 5, nk = 25,
                               rep_tau = 0.0000001,
                               noise_tau = 0.0000001,
                               gp_n = 1000, gp_cov_pars = c(0.0001, 0.05)) {
-  n <- ni * nj * nk
-  list_m <- lapply(1:ngroups, function(i) {
-    function(t) m(t, i)
-  })
+  #' n <- ni * nj * nk
+  #' list_m <- lapply(1:ngroups, function(i) {
+  #'   function(t) m(t, i)
+  #' })
   grp <- factor(rep(sample(1:ngroups, ni * nj, replace = TRUE), each = nk))
   delta_i <- geoR::grf(gp_n, nx = 1, grid = "reg",
                        xlims = c(0, 1),
@@ -467,7 +434,7 @@ gen_1d_mc_data_gp <- function(m, ngroups = 3, ni = 6, nj = 5, nk = 25,
       ylist[[ij_idx]] <- (grp == 1) * m(tx, 1) +
         (grp == 2) * m(tx, 2) +
         (grp == 3) * m(tx, 3) +
-        tdi + tdij + tdijk #??? rnorm(nk, 0, tau2)
+        tdi + tdij + tdijk
       grplist[[ij_idx]] <- rep(grp, nk)
       xlist[[ij_idx]] <- tx
       indlist[[ij_idx]] <- rep(i, nk)
@@ -579,17 +546,18 @@ gen_1d_mc_data_gp <- function(m, ngroups = 3, ni = 6, nj = 5, nk = 25,
 #' mixedcurve::dark_mode()
 #' mixedcurve::plot.fundata(data2, ncurves = 9)
 gen_fanova_data <- function(f = mixedcurve::m3, bounds = c(0, 1),
-                            n = 10, ngrp = 3, nx = 200,
-                            balanced = FALSE, 
-                            sigma = 0.05, systematic = FALSE,
-                            px = runif,
-                            pxargs = list(list(min = 0, max = 1)),
-                            white_noise = TRUE,
-                            cov_scale = 0.05, gpn = 100, family = "gaussian",
-                            pgrp = NULL,
-                            pgrpargs = NULL
-                            ) {
-  if(is.null(pgrp) & !is.null(pgrpargs) || !is.null(pgrp) & is.null(pgrpargs)) {
+  n = 10, ngrp = 3, nx = 200,
+  balanced = FALSE,
+  sigma = 0.05, systematic = FALSE,
+  px = runif,
+  pxargs = list(list(min = 0, max = 1)),
+  white_noise = TRUE,
+  cov_scale = 0.05, gpn = 100, family = "gaussian",
+  pgrp = NULL,
+  pgrpargs = NULL
+) {
+  if (is.null(pgrp) && !is.null(pgrpargs) ||
+        (!is.null(pgrp) && is.null(pgrpargs))) {
     stop("Both pgrp and pgrpargs must be provided or both must be NULL.")
   }
   if (is.vector(bounds) && !is.list(bounds)) {
@@ -609,7 +577,7 @@ gen_fanova_data <- function(f = mixedcurve::m3, bounds = c(0, 1),
   } else {
     ntotal <- n
   }
-  if(is.null(pgrp)) {
+  if (is.null(pgrp)) {
     pgrp <- sample
     pgrpargs <- list(x = 1:ngrp, size = ntotal, replace = TRUE)
   }
@@ -623,15 +591,15 @@ gen_fanova_data <- function(f = mixedcurve::m3, bounds = c(0, 1),
   grplist <- list()
   idlist <- list()
   if (!white_noise) {
-    if(dims == 1) {
+    if (dims == 1) {
       delta_i <- geoR::grf(gpn, nx = 1, grid = "reg",
                            xlims = c(bounds[[1]][1], bounds[[1]][2]),
                            cov.model = "gaussian",
                            cov.pars = c(sigma, cov_scale),
                            nugget = 0.0,
                            nsim = ntotal, messages = FALSE)[[2]]
-    } else if(dims == 2) {
-      if(systematic) {
+    } else if (dims == 2) {
+      if (systematic) {
         delta_i <- geoR::grf(nx = nx, ny = nx, grid = "reg",
                              xlims = c(bounds[[1]][1], bounds[[1]][2]),
                              ylims = c(bounds[[2]][1], bounds[[2]][2]),
@@ -674,49 +642,50 @@ gen_fanova_data <- function(f = mixedcurve::m3, bounds = c(0, 1),
     grplist[[i]] <- rep(grps[i], each = nrow(xlist[[i]]))
     ylist[[i]] <- f(xlist[[i]], grps[i])
     if (white_noise) {
-      tnxy <- nx ^ dims
+      #' tnxy <- nx ^ dims
       ylist[[i]] <- ylist[[i]] + rnorm(length(ylist[[i]]), 0, sigma)
-      if(family != "gaussian") {
-        if(family == "poisson") {
+      if (family != "gaussian") {
+        if (family == "poisson") {
           ylist[[i]] <- rpois(length(ylist[[i]]), lambda = ylist[[i]])
-        } else if(family == "binomial") {
+        } else if (family == "binomial") {
           ylist[[i]] <- rbinom(length(ylist[[i]]), size = 1,
                                prob = ylist[[i]])
         } else {
-          stop("Currently only gaussian, poisson, and binomial families are supported.")
+          stop("Only gaussian, poisson, and binomial families supported.")
         }
       }
     } else {
-      if(dims == 1) {
+      if (dims == 1) {
         grid_points <- seq(bounds[[1]][1], bounds[[1]][2], length.out = gpn)
         idx <- sapply(xlist[[i]], function(xi) {
           which.min(abs(grid_points - xi))
         })
       }
-      if(dims == 1) {
+      if (dims == 1) {
         ylist[[i]] <- ylist[[i]] + delta_i[idx, i]
-      } else if(dims == 2) {
-        if(!systematic) {
-        grid_points <- expand.grid(seq(bounds[[1]][1], bounds[[1]][2], length.out = gpn),
-                                   seq(bounds[[2]][1], bounds[[2]][2], length.out = gpn))
-        # NOTE: changed here, may mess up other cases
-        idx <- unlist(sapply(1:nrow(xlist[[i]]), function(j) {
-          which.min(sqrt((grid_points[j, 1] - xlist[[i]][j, 1])^2 +
-                           (grid_points[j,1] - xlist[[i]][j, 2])^2))
-        }))
-        ylist[[i]] <- ylist[[i]] + delta_i[idx, i]
+      } else if (dims == 2) {
+        if (!systematic) {
+          grid_points <- expand.grid(seq(bounds[[1]][1],
+                                         bounds[[1]][2], length.out = gpn),
+                                     seq(bounds[[2]][1],
+                                         bounds[[2]][2], length.out = gpn))
+          idx <- unlist(sapply(seq_len(nrow(xlist[[i]])), function(j) {
+            which.min(sqrt((grid_points[j, 1] - xlist[[i]][j, 1])^2 +
+                             (grid_points[j, 1] - xlist[[i]][j, 2])^2))
+          }))
+          ylist[[i]] <- ylist[[i]] + delta_i[idx, i]
         } else {
           ylist[[i]] <- ylist[[i]] + delta_i[, i]
         }
       }
-      if(family != "gaussian") {
-        if(family == "poisson") {
+      if (family != "gaussian") {
+        if (family == "poisson") {
           ylist[[i]] <- rpois(length(ylist[[i]]), lambda = ylist[[i]])
-        } else if(family == "binomial") {
+        } else if (family == "binomial") {
           ylist[[i]] <- rbinom(length(ylist[[i]]), size = 1,
                                prob = ylist[[i]])
         } else {
-          stop("Currently only gaussian, poisson, and binomial families are supported.")
+          stop("Only gaussian poisson, and binomial families are supported.")
         }
       }
     }
@@ -724,7 +693,8 @@ gen_fanova_data <- function(f = mixedcurve::m3, bounds = c(0, 1),
   }
   tx <- do.call(rbind, xlist)
   ret <- data.frame(y = unlist(ylist),
-                    grp = as.factor(unlist(grplist)), id = as.factor(unlist(idlist)))
+                    grp = as.factor(unlist(grplist)),
+                    id = as.factor(unlist(idlist)))
   if (dims == 1) {
     ret$x1 <- as.vector(tx)
   } else {
@@ -732,18 +702,18 @@ gen_fanova_data <- function(f = mixedcurve::m3, bounds = c(0, 1),
       ret[[paste0("x", d)]] <- as.vector(tx[, d])
     }
   }
-  if(systematic) {
+  if (systematic) {
     nxy <- nx ^ dims
   } else {
     nxy <- nx
   }
   coreset <- ret[(0:(ntotal - 1)) * nxy + 1, ]
   structure(list(df = ret, coreset = coreset,
-                 curves = list(y = ylist, x = xlist),
-                 dims = dims, nx = nx, systematic = systematic,
-                 grps = grps,
-                 family = family
-                 ),
+              curves = list(y = ylist, x = xlist),
+              dims = dims, nx = nx, systematic = systematic,
+              grps = grps,
+              family = family
+            ),
             class = "fundata")
 }
 
@@ -753,29 +723,25 @@ plot.fundata <- function(fundata, curves, color_scale = NULL) {
     tcurves <- fundata$curves
     tcoreset <- fundata$coreset
     nxy <- fundata$nx
-    if(fundata$systematic) {
+    if (fundata$systematic) {
       for (i in curves) {
-        plot(tcurves$x[[i]], 
-              tdf$y[((i - 1) * nxy + 1):(i * nxy)], 
-              lwd = 2,
-              type = 'l',
-              xlab = "x", ylab = "y",
-              main = paste("Sample", i, " (Group",
-                           tcoreset$grp[i], ")", sep = ""),
-             ylim = range(tdf$y)
+        plot(tcurves$x[[i]], tdf$y[((i - 1) * nxy + 1):(i * nxy)],
+          lwd = 2,
+          type = "l",
+          xlab = "x", ylab = "y",
+          main = paste("Sample", i, " (Group", tcoreset$grp[i], ")", sep = ""),
+          ylim = range(tdf$y)
         )
       }
     } else {
       for (i in curves) {
         ord <- order(tcurves$x[[i]])
-        plot(tcurves$x[[i]][ord], 
-              tdf$y[((i - 1) * nxy + 1):(i * nxy)][ord], 
-              lwd = 2,
-              type = 'l',
-              xlab = "x", ylab = "y",
-              main = paste("Sample", i, " (Group",
-                           tcoreset$grp[i], ")", sep = ""),
-             ylim = range(tdf$y)
+        plot(tcurves$x[[i]][ord], tdf$y[((i - 1) * nxy + 1):(i * nxy)][ord],
+          lwd = 2,
+          type = "l",
+          xlab = "x", ylab = "y",
+          main = paste("Sample", i, " (Group", tcoreset$grp[i], ")", sep = ""),
+          ylim = range(tdf$y)
         )
       }
     }
@@ -785,18 +751,16 @@ plot.fundata <- function(fundata, curves, color_scale = NULL) {
       df2 <- fundata$df
       tcoreset <- fundata$coreset
       tcurves <- fundata$curves
-      if(is.null(color_scale)) {
+      if (is.null(color_scale)) {
         color_scale <- viridis::viridis(100)
       }
       breaks <- seq(min(df2$y), max(df2$y), length.out = 101)
       for (i in curves) {
-        image(matrix(tcurves$y[[i]],
-                     nxy, nxy, byrow = TRUE),
-              xlab = "x1", ylab = "x2",
-              main = paste("Sample ", i, " (Group",
-                           tcoreset$grp[i], ")", sep = ""),
-              col = color_scale,
-              breaks = breaks
+        image(matrix(tcurves$y[[i]], nxy, nxy, byrow = TRUE),
+          xlab = "x1", ylab = "x2",
+          main = paste("Sample ", i, " (Group", tcoreset$grp[i], ")", sep = ""),
+          col = color_scale,
+          breaks = breaks
         )
       }
     } else {
@@ -804,18 +768,18 @@ plot.fundata <- function(fundata, curves, color_scale = NULL) {
       tcurves <- fundata$curves
       tcoreset <- fundata$coreset
       nxy <- fundata$nx
-      if(is.null(color_scale)) {
+      if (is.null(color_scale)) {
         color_scale <- viridis::viridis(100)
       }
       color_values <- cut(tdf$y, breaks = 100, labels = FALSE)
       for (i in curves) {
         plot(tcurves$x[[i]][, 1],
-             tcurves$x[[i]][, 2],
-             col = color_scale[color_values[((i - 1) * nxy + 1):((i) * nxy)]],
-             pch = 20, cex = 2, xlab = "x1",
-             ylab = "x2", main = paste("Sample", i,
-                                       " (Group", tcoreset$grp[i], ")", sep = "")
-             )
+          tcurves$x[[i]][, 2],
+          col = color_scale[color_values[((i - 1) * nxy + 1):((i) * nxy)]],
+          pch = 20, cex = 2, xlab = "x1",
+          ylab = "x2",
+          main = paste("Sample", i, " (Group", tcoreset$grp[i], ")", sep = "")
+        )
       }
     }
   } else {

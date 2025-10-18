@@ -2,17 +2,17 @@
 
 # {{{ License
 # Copyright (C) <2025>  <Jordan Schupbach>
-# 
+#
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 3 of the License, or
 #     (at your option) any later version.
-# 
+#
 #     This program is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
-# 
+#
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # }}} License
@@ -27,7 +27,9 @@
 gen_perm_fanova <- function(dataf, grp_col = "grp", id_col = "id") {
   ret <- dataf
   shuffled_ids <- sample(unique(ret[[id_col]]))
-  shuffled_grp <- rep(sample(unique(ret[[grp_col]])), length.out = length(unique(ret[[id_col]])))
+  shuffled_grp <- rep(sample(unique(ret[[grp_col]])),
+    length.out = length(unique(ret[[id_col]]))
+  )
   new_mapping <- setNames(shuffled_grp, shuffled_ids)
   ret[[grp_col]] <- new_mapping[as.character(ret[[id_col]])]
   ret
@@ -58,9 +60,17 @@ gen_pvals_anova <- function(dataf, xseq) {
 #' @param dataf - data frame with columns x, y, grp, id
 #' @param xseq - sequence of x values to test
 #' @param nperm - number of permutations
-#' @param gen_pvals_fun - function to generate p-values, takes dataf and xseq as arguments
-#' @param gen_perm_fun - function to generate a permutation of the data, takes dataf as argument
-wy_full <- function(dataf, xseq, nperm, gen_pvals_fun, gen_perm_fun) {
+#' @param gen_pvals_fun - function to generate p-values,
+#'                        takes dataf and xseq as arguments
+#' @param gen_perm_fun - function to generate a permutation of
+#'                       the data, takes dataf as argument
+wy_full <- function(dataf, xseq, nperm, gen_pvals_fun,
+                    gen_perm_fun, cl = NULL) {
+  if (is.numeric(xseq)) {
+    nx <- length(xseq)
+  } else {
+    stop("xseq must be numeric vector")
+  }
   rpvals <- gen_pvals_fun(dataf, xseq)
   srpvals <- sort(rpvals, index.return = TRUE)
   pstars <- matrix(0, nrow = nx, ncol = nperm)
@@ -69,7 +79,10 @@ wy_full <- function(dataf, xseq, nperm, gen_pvals_fun, gen_perm_fun) {
     perm_pvals <- gen_pvals_fun(perm, xseq)
     perm_pvals
   }
-  pstars_list <- parLapply(cl, seq_len(nperm), function(i) calc_perm_pvals(dataf, xseq))
+  pstars_list <- parallel::parLapply(
+    cl, seq_len(nperm),
+    function(i) calc_perm_pvals(dataf, xseq)
+  )
   pstars <- do.call(cbind, pstars_list)
   pstars <- pstars[srpvals$ix, ]
   qstars <- matrix(0, nrow = nx, ncol = nperm)
@@ -94,16 +107,30 @@ wy_full <- function(dataf, xseq, nperm, gen_pvals_fun, gen_perm_fun) {
 #' @param dataf - data frame with columns x, y, grp, id
 #' @param xseq - sequence of x values to test
 #' @param nperm - number of permutations
-#' @param gen_pvals_fun - function to generate p-values, takes dataf and xseq as arguments
-#' @param gen_perm_fun - function to generate a permutation of the data, takes dataf as argument
-wy_one_step <- function(dataf, xseq, nperm, gen_pvals_fun, gen_perm_fun) {
+#' @param gen_pvals_fun - function to generate p-values,
+#'                        takes dataf and xseq as arguments
+#' @param gen_perm_fun - function to generate a permutation
+#'                       of the data, takes dataf as argument
+wy_one_step <- function(dataf, xseq, nperm, gen_pvals_fun,
+                        gen_perm_fun, cl = NULL) {
+  if (is.numeric(xseq)) {
+    nx <- length(xseq)
+  } else {
+    stop("xseq must be numeric vector")
+  }
   rpvals <- gen_pvals_fun(dataf, xseq)
   calc_min_pval <- function(dataf, xseq) {
     perm <- gen_perm_fun(dataf)
     perm_pvals <- gen_pvals_fun(perm, xseq)
     min(perm_pvals)
   }
-  min_pvals <- unlist(parLapply(cl, seq_len(nperm), function(i) calc_min_pval(df1, xseq)))
+  min_pvals <- unlist(parallel::parLapply(
+    cl,
+    seq_len(nperm),
+    function(i) {
+      calc_min_pval(dataf, xseq)
+    }
+  ))
   corrected_pvals <- numeric(nx)
   for (j in 1:nx) {
     corrected_pvals[j] <- mean(min_pvals <= rpvals[j])

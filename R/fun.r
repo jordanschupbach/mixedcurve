@@ -2,17 +2,17 @@
 
 # {{{ License
 # Copyright (C) <2025>  <Jordan Schupbach>
-# 
+#
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 3 of the License, or
 #     (at your option) any later version.
-# 
+#
 #     This program is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
-# 
+#
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # }}} License
@@ -35,7 +35,7 @@
 #' @export
 #' @examples
 #' myfun <- fun((function(x) sqrt(x)),
-#'     dom = c(0, 1000)
+#'   dom = c(0, 1000)
 #' )
 #' plot.fun(myfun)
 #' @export
@@ -78,10 +78,10 @@ emin <- function(fun, dom = NULL, n = 10000) {
 
 # {{{ emax() # TODO: use random sampling
 emax <- function(fun, dom = NULL, n = 10000) {
-  if (is.null(dom) & (class(fun) == "fun")) {
+  if (is.null(dom) && (class(fun) == "fun")) {
     dom <- fun$dom
   }
-  if (length(dom) > 1 & (class(dom) == "list")) {
+  if (length(dom) > 1 && (class(dom) == "list")) {
     stop("Implemented for 1d funs only")
   }
   # TODO: generalize to more dims

@@ -25,8 +25,7 @@
 #' @return The Gaussian kernel value(s) corresponding to the input.
 #'
 #' @examples
-#' gauss_kern(0) # Should return 1
-# #' gauss_kern(c(-1, 0, 1)) # Should return values for -1, 0, and 1
+#' gauss_kern(0)
 gauss_kern <- function(x) {
   if (is.vector(x)) {
     x <- matrix(x, nrow = 1)
@@ -37,10 +36,10 @@ gauss_kern <- function(x) {
   kernel_values
 }
 
-
 # }}} gauss_kern
 
 # {{{ k_h
+
 #' Scaled Gaussian kernel function
 #'
 #' This function computes the scaled Gaussian kernel value
@@ -58,6 +57,7 @@ gauss_kern <- function(x) {
 kern_h <- function(x, h, kern = gauss_kern) {
   kern(x / h) / h
 }
+
 # }}} k_h
 
 # {{{ lm_kernel_weights

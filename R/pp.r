@@ -2,17 +2,17 @@
 
 # {{{ License
 # Copyright (C) <2025>  <Jordan Schupbach>
-# 
+#
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 3 of the License, or
 #     (at your option) any later version.
-# 
+#
 #     This program is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
-# 
+#
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # }}} License
@@ -227,7 +227,8 @@ get_bt_counts <- function(frame, cells = 100) {
     left <- frame$win[[1]][1]
     right <- frame$win[[1]][2]
     xseq <- seq(left, right, length.out = (cells + 1))
-    cts <- hist(frame$points[, 1][frame$points[, 1] > left & frame$points[, 1] < right],
+    cts <- hist(frame$points[, 1][frame$points[, 1] > left &&
+                                    frame$points[, 1] < right],
                 breaks = xseq, plot = FALSE)$counts
     centroids <- seq_centroids(left, right, cells)
     return(list(counts = cts, centroids = centroids))

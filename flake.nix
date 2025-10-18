@@ -21,6 +21,7 @@
           pkgs.rPackages.nloptr
           pkgs.rPackages.geoR
           pkgs.rPackages.languageserver
+          pkgs.rPackages.testthat
           pkgs.nlopt
         ];
       };
@@ -44,6 +45,7 @@
           rPackages.dplyr
           rPackages.nloptr
           rPackages.languageserver
+          pkgs.rPackages.testthat
           pandoc
           nlopt
           entr

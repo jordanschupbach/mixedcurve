@@ -2,17 +2,17 @@
 
 # {{{ License
 # Copyright (C) <2025>  <Jordan Schupbach>
-# 
+#
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 3 of the License, or
 #     (at your option) any later version.
-# 
+#
 #     This program is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
-# 
+#
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # }}} License
@@ -26,8 +26,10 @@
 # {{{ dist_2d
 
 #' Function to calculate the Euclidean distance between two points in 2D space
-#' @param xy1 A numeric vector of length 2 representing the coordinates of the first point (x1, y1)
-#' @param xy2 A numeric vector of length 2 representing the coordinates of the second point (x2, y2)
+#' @param xy1 A numeric vector of length 2 representing the
+#'            coordinates of the first point (x1, y1)
+#' @param xy2 A numeric vector of length 2 representing the
+#'            coordinates of the second point (x2, y2)
 #' @return The Euclidean distance between the two points
 #' @examples
 #' point1 <- c(1, 2)
@@ -52,16 +54,16 @@ distance <- function(x, y) {
 
 # {{{ grf
 grf <- function(n, interval, v, s) {
-  xg <- seq(interval[1], interval[2], length.out = n) # Sequence over [0,1] of length n + 1
-  cf <- function(d, variance, scale) {  # Gaussian Covariance Function
+  xg <- seq(interval[1], interval[2], length.out = n)
+  cf <- function(d, variance, scale) {
     variance * exp(-(d / scale)^2)
   }
-  Sigma <- cf(as.matrix(dist(c(xg, rev(xg)[-length(xg)][-1]))), v, s) # Torus (1d) over grid
-  temp <- numeric(nrow(Sigma))
-  temp[floor(nrow(Sigma))] <- 1  # Dirac
-  w <- fft(Sigma[1, ]) / (fft(temp) * n) # Compute weights
-  z <- fft(rnorm(length(w), interval[1], interval[2])) # Fourier of standard normal
-  y <- Re(fft(sqrt(w) * z, inverse = TRUE))[1:(n)] / sqrt(n) # Inverse Fourier over sqrt(w) * z
+  sigma <- cf(as.matrix(dist(c(xg, rev(xg)[-length(xg)][-1]))), v, s)
+  temp <- numeric(nrow(sigma))
+  temp[floor(nrow(sigma))] <- 1
+  w <- fft(sigma[1, ]) / (fft(temp) * n)
+  z <- fft(rnorm(length(w), interval[1], interval[2]))
+  y <- Re(fft(sqrt(w) * z, inverse = TRUE))[1:(n)] / sqrt(n)
   list(x = xg, y = y)
 }
 # }}} grf

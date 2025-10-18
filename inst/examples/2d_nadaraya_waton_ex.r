@@ -1,4 +1,3 @@
-
 nxy <- 300
 fundata1 <- mixedcurve::gen_fanova_data(
   f = mixedcurve::m2, bounds = list(c(0, 1), c(0, 1)),
@@ -32,8 +31,8 @@ breaks <- seq(min(all_values), max(all_values), length.out = 101)
 colors <- viridis::viridis(100)
 par(mfrow = c(1, 3))
 for (i in 1:3) {
-  image(matrix(qrs[, i], 20, 20), col = colors, breaks = breaks,
-        axes = FALSE, main = paste("Image", i))
+  image(matrix(qrs[, i], 20, 20),
+    col = colors, breaks = breaks,
+    axes = FALSE, main = paste("Image", i)
+  )
 }
-
-
