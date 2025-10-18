@@ -16,15 +16,19 @@ glpkme(
 )
 }
 \arguments{
-\item{formula}{A formula object specifying the model to be fitted of the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on whether a grouping variable is present.}
+\item{formula}{A formula object specifying the model to be fitted
+of the form y ~ K_h(x | grp) or  y ~ K_h(x) depending
+on whether a grouping variable is present.}
 
-\item{queries}{A numeric vector of points at which to evaluate the fitted values.}
+\item{queries}{A numeric vector of points at which to evaluate
+the fitted values.}
 
 \item{data}{A data frame containing the variables in the formula.}
 
 \item{h}{A positive numeric value representing the bandwidth for the kernel.}
 
-\item{degree}{An integer specifying the degree of the local polynomial (default is 0 for Nadaraya-Watson estimator).}
+\item{degree}{An integer specifying the degree of the local polynomial
+(default is 0 for Nadaraya-Watson estimator).}
 }
 \description{
 Local polynomial Kernel Mixed-Effect regression

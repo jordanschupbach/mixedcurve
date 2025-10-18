@@ -24,7 +24,18 @@ whether a grouping variable is present.}
 \item{degree}{An integer specifying the degree of the local polynomial
 (default is 0 for Nadaraya-Watson estimator).}
 
-\item{h}{A positive numeric value representing the bandwidth for the kernel.}
+\item{h}{A positive numeric value representing the bandwidth for the kernel.
+terms <- parse_terms(formula)
+queries <- c(
+  coef(lm_fit)[1],
+  sapply(2:length(coef(lm_fit)),
+         function(i) coef(lm_fit)[1] + coef(lm_fit)[i])
+)
+queries <- exp(c(
+  coef(lm_fit)[1],
+  sapply(2:length(coef(lm_fit)),
+         function(i) coef(lm_fit)[1] + coef(lm_fit)[i])
+))}
 
 \item{queries}{A numeric vector of points at which to evaluate the fitted
 values.}

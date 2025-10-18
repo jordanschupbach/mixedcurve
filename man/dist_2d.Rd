@@ -7,9 +7,11 @@
 dist_2d(xy1, xy2)
 }
 \arguments{
-\item{xy1}{A numeric vector of length 2 representing the coordinates of the first point (x1, y1)}
+\item{xy1}{A numeric vector of length 2 representing the
+coordinates of the first point (x1, y1)}
 
-\item{xy2}{A numeric vector of length 2 representing the coordinates of the second point (x2, y2)}
+\item{xy2}{A numeric vector of length 2 representing the
+coordinates of the second point (x2, y2)}
 }
 \value{
 The Euclidean distance between the two points

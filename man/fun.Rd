@@ -16,7 +16,7 @@ A function class
 }
 \examples{
 myfun <- fun((function(x) sqrt(x)),
-    dom = c(0, 1000)
+  dom = c(0, 1000)
 )
 plot.fun(myfun)
 }

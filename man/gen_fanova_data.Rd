@@ -111,4 +111,5 @@ data2 <- mixedcurve::gen_fanova_data(
 )
 mixedcurve::dark_mode()
 mixedcurve::plot.fundata(data2, ncurves = 9)
+tnxy <- nx ^ dims
 }

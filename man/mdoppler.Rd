@@ -28,12 +28,14 @@ function around the center of the unit cube.
 \examples{
 # 2d example
 neval <- 100
-image(matrix(mixedcurve::mdoppler(as.matrix(expand.grid(seq(0, 1, length.out = neval),
-                               seq(0, 1, length.out = neval)))),
+image(matrix(mixedcurve::mdoppler(
+  as.matrix(expand.grid(seq(0, 1, length.out = neval),
+                        seq(0, 1, length.out = neval)))),
        nrow = neval, ncol = neval))
 
 # 1d example
 neval <- 1000
 xseq <- seq(0, 1, length.out = neval)
-plot(xseq, mixedcurve::mdoppler(xseq), type = 'l', xlab ='x', ylab = 'mdoppler(x)', main = 'Modified Doppler Function (1d)')
+plot(xseq, mixedcurve::mdoppler(xseq), type = 'l', xlab ='x',
+     ylab = 'mdoppler(x)', main = 'Modified Doppler Function (1d)')
 }

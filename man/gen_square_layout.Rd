@@ -7,14 +7,15 @@
 gen_square_layout(ncurves)
 }
 \arguments{
-\item{ncurves}{A positive integer representing the number of curves to be plotted.}
+\item{ncurves}{A positive integer representing the number of curves
+to be plotted.}
 }
 \value{
 A matrix representing the layout for plotting the curves.
 }
 \description{
-This function generates a layout matrix that arranges a specified number of curves
-in a nearly square grid for plotting purposes.
+This function generates a layout matrix that arranges a specified
+number of curves in a nearly square grid for plotting purposes.
 }
 \examples{
 ncurves <- 10

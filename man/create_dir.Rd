@@ -7,10 +7,12 @@
 create_dir(dir_path)
 }
 \arguments{
-\item{dir_path}{A string representing the path of the directory to be created.}
+\item{dir_path}{A string representing the path of the directory
+to be created.}
 }
 \value{
-None. The function is called for its side effects of creating a directory.
+None. The function is called for its side effects of
+              creating a directory.
 }
 \description{
 This function creates a directory if it does not already exist.

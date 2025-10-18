@@ -7,12 +7,15 @@
 dark_mode()
 }
 \value{
-None. The function is called for its side effects of changing graphical parameters.
+None. The function is called for its side effects of
+              changing graphical parameters.
 }
 \description{
-This function customizes the graphical parameters in R to create a dark mode theme
-for plots. It sets the background color to a dark gray and adjusts text and line colors
-to be light for better visibility. It also defines a custom color palette suitable for dark mode.
+This function customizes the graphical parameters in R to
+create a dark mode theme for plots. It sets the background
+color to a dark gray and adjusts text and line colors to be
+light for better visibility. It also defines a custom color
+palette suitable for dark mode.
 }
 \examples{
 dark_mode()

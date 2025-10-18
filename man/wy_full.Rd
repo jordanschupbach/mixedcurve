@@ -4,7 +4,7 @@
 \alias{wy_full}
 \title{Westfall-Young full method}
 \usage{
-wy_full(dataf, xseq, nperm, gen_pvals_fun, gen_perm_fun)
+wy_full(dataf, xseq, nperm, gen_pvals_fun, gen_perm_fun, cl = NULL)
 }
 \arguments{
 \item{dataf}{- data frame with columns x, y, grp, id}
@@ -13,9 +13,11 @@ wy_full(dataf, xseq, nperm, gen_pvals_fun, gen_perm_fun)
 
 \item{nperm}{- number of permutations}
 
-\item{gen_pvals_fun}{- function to generate p-values, takes dataf and xseq as arguments}
+\item{gen_pvals_fun}{- function to generate p-values,
+takes dataf and xseq as arguments}
 
-\item{gen_perm_fun}{- function to generate a permutation of the data, takes dataf as argument}
+\item{gen_perm_fun}{- function to generate a permutation of
+the data, takes dataf as argument}
 }
 \description{
 Westfall-Young full method

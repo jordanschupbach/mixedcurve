@@ -16,5 +16,5 @@ The Gaussian kernel value(s) corresponding to the input.
 This function computes the Gaussian kernel value for a given input.
 }
 \examples{
-gauss_kern(0) # Should return 1
+gauss_kern(0)
 }

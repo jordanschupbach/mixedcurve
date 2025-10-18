@@ -9,15 +9,17 @@ use_package(package_name, repo = "http://cran.us.r-project.org")
 \arguments{
 \item{package_name}{A string representing the name of the package to be used.}
 
-\item{repo}{A string specifying the CRAN repository URL to use for installation.
-Default is "http://cran.us.r-project.org".}
+\item{repo}{A string specifying the CRAN repository URL to use
+for installation. Default is "http://cran.us.r-project.org".}
 }
 \value{
-None. The function is called for its side effects of installing and loading the package.
+None. The function is called for its side effects of installing
+              and loading the package.
 }
 \description{
-This function checks if a specified R package is installed. If not, it installs
-the package from CRAN and then loads it into the R session.
+This function checks if a specified R package is installed.
+If not, it installs the package from CRAN and then loads
+it into the R session.
 }
 \examples{
 use_package("ggplot2")

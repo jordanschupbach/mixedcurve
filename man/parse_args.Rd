@@ -7,7 +7,8 @@
 parse_args(silent = FALSE)
 }
 \arguments{
-\item{silent}{Logical. If TRUE, suppress messages regarding the absence of arguments.}
+\item{silent}{Logical. If TRUE, suppress messages regarding the absence
+of arguments.}
 }
 \value{
 A named list containing the parsed arguments.

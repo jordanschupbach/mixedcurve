@@ -19,8 +19,10 @@ Functions m1 to m5 as defined in Cuevas et al. (2004)
 }
 \examples{
 x <- seq(0, 1, length.out = 100)
-plot(x, mixedcurve::m2(x, 1), type = 'l', xlab ='t', ylab = 'm2(t,i)', main = 'Cuevas: m2(t,i)')
+plot(x, mixedcurve::m2(x, 1), type = "l", xlab = "t",
+     ylab = "m2(t, i)", main = "Cuevas: m2(t, i)")
 lines(x, mixedcurve::m2(x, 2), col = 2)
 lines(x, mixedcurve::m2(x, 3), col = 3)
-legend("topright", legend = c("m2(t,1)", "m2(t,2)", "m2(t,3)"), col = 1:3, lty = 1)
+legend("topright", legend = c("m2(t,1)", "m2(t,2)", "m2(t,3)"),
+       col = 1:3, lty = 1)
 }
