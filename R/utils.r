@@ -25,8 +25,11 @@
 #'                 to be created.
 #' @return None. The function is called for its side effects of
 #'               creating a directory.
+#'
+#' @export
+#'
 #' @examples
-#' create_dir("new_directory")
+#' mixedcurve::create_dir("new_directory")
 create_dir <- function(dir_path) {
   if (!dir.exists(dir_path)) {
     dir.create(dir_path, recursive = TRUE)
@@ -51,10 +54,11 @@ create_dir <- function(dir_path) {
 #' @return None. The function is called for its side effects of
 #'               changing graphical parameters.
 #'
-#' @examples
-#' dark_mode()
-#' plot(1:10, 1:10, main = "Dark Mode Plot", xlab = "X-axis", ylab = "Y-axis")
 #' @export
+#'
+#' @examples
+#' mixedcurve::dark_mode()
+#' plot(1:10, 1:10, main = "Dark Mode Plot", xlab = "X-axis", ylab = "Y-axis")
 dark_mode <- function() {
   par(
     bg = "gray30",
@@ -75,6 +79,22 @@ dark_mode <- function() {
 # }}} dark_mode
 
 # {{{ light_mode
+
+#' Function to set light mode theme for R plots
+#'
+#' This function customizes the graphical parameters in R to
+#' create a dark mode theme for plots. It sets the background
+#' color to white and adjusts text and line colors to be
+#' dark for better visibility. It also defines a custom color
+#' palette suitable for light mode.
+#'
+#' @return None. The function is called for its side effects of
+#'               changing graphical parameters.
+#'
+#' @examples
+#' mixedcurve::light_mode()
+#' plot(1:10, 1:10, main = "Light Mode Plot", xlab = "X-axis", ylab = "Y-axis")
+#' @export
 light_mode <- function() {
   par(
     bg = "white",
@@ -94,6 +114,7 @@ light_mode <- function() {
 # }}} light_mode
 
 # {{{ use_package
+
 #' Ensure a package is installed and loaded
 #'
 #' This function checks if a specified R package is installed.
@@ -107,8 +128,9 @@ light_mode <- function() {
 #' @return None. The function is called for its side effects of installing
 #'               and loading the package.
 #'
+#' @export
 #' @examples
-#' use_package("ggplot2")
+#' mixedcurve::use_package("ggplot2")
 use_package <- function(package_name, repo = "http://cran.us.r-project.org") {
   if (!require(package_name, character.only = TRUE)) {
     install.packages(package_name, repos = repo, quiet = TRUE, ask = FALSE)
@@ -133,13 +155,13 @@ use_package <- function(package_name, repo = "http://cran.us.r-project.org") {
 #' Each argument will be stored in the list with its name as the key,
 #' and converted to the appropriate type (logical, numeric, or character).
 #'
+#' @export
+#'
 #' @examples
 #' # Run the following in the R console with command line arguments:
 #' # Rscript my_script.R --darkmode TRUE --nsim 100
-#' args <- parse_args()
+#' args <- mixedcurve::parse_args()
 #' print(args)
-#'
-#' @export
 parse_args <- function(silent = FALSE) {
   args <- commandArgs(trailingOnly = TRUE)
 

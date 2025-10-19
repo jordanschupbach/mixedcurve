@@ -24,7 +24,6 @@ the type of each argument (logical, numeric, or character).
 \examples{
 # Run the following in the R console with command line arguments:
 # Rscript my_script.R --darkmode TRUE --nsim 100
-args <- parse_args()
+args <- mixedcurve::parse_args()
 print(args)
-
 }

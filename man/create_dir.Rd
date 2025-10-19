@@ -18,5 +18,5 @@ None. The function is called for its side effects of
 This function creates a directory if it does not already exist.
 }
 \examples{
-create_dir("new_directory")
+mixedcurve::create_dir("new_directory")
 }

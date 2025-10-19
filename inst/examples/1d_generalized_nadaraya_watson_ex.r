@@ -1,7 +1,10 @@
+parallel
+
 # 1. Define the true curves
 tf <- function(t, i) {
   exp(3 * exp(mixedcurve::m3(t, i)) - 2.7)
 }
+
 # 2. Generate the data
 tdata1 <- mixedcurve::gen_fanova_data(
   f = tf,

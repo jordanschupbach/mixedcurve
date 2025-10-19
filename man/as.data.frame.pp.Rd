@@ -13,12 +13,12 @@
 coerce a pp object into a dataframe (loses all but point info)
 }
 \examples{
-pp1 <- pp(
+pp1 <- mixedcurve::pp(
     points = data.frame(x = runif(100, 0, 1)),
     win = list(c(0, 1)),
     covs = list()
 )
-df1 <- as.data.frame(pp)
+df1 <- mixedcurve::as.data.frame(pp)
 }
 \author{
 Jordan Schupbach

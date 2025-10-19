@@ -13,7 +13,6 @@
       mixedcurve = pkgs.rPackages.buildRPackage {
         name = "mixedcurve";
         src = ./.;
-        # TODO: add deps
         buildInputs = [
           pkgs.R
           pkgs.rPackages.viridis
@@ -22,17 +21,41 @@
           pkgs.rPackages.geoR
           pkgs.rPackages.languageserver
           pkgs.rPackages.testthat
+          pkgs.rPackages.rmarkdown
+          pkgs.rPackages.knitr
+          pkgs.rPackages.devtools
           pkgs.nlopt
+          colorout
         ];
+        meta = {
+          buildVignettes = true;
+        };
       };
-      propagatedBuildInputs = [pkgs.rPackges.viridis];
-      nativeBuildInputs = [pkgs.rPackges.viridis];
-      # propagatedBuildInputs = with pkgs.rPackages; [viridis];
+      # https://github.com/jalvesaq/colorout
+      colorout = pkgs.rPackages.buildRPackage {
+        name = "colorout";
+        src = pkgs.fetchFromGitHub {
+          owner = "jalvesaq";
+          repo = "colorout";
+          rev = "64863bb252ea9a6c3aeac10fcba6ce547697d176";
+          sha256 = "sha256-QCYR00rC0GB12xgztlJWr7OmNEQsti/1p0gnhqPQv1Y=";
+        };
+      };
+
+      propagatedBuildInputs = [
+        pkgs.rPackges.viridis 
+        pkgs.rPackges.devtools
+      ];
+      nativeBuildInputs = [
+        pkgs.rPackges.viridis
+        pkgs.rPackges.devtools
+      ];
     in {
       devShells.default = pkgs.mkShell {
         nativeBuildInputs = [pkgs.bashInteractive];
         buildInputs = with pkgs; [
           mixedcurve
+          colorout
           R
           rPackages.devtools
           rPackages.covr
@@ -45,10 +68,13 @@
           rPackages.dplyr
           rPackages.nloptr
           rPackages.languageserver
-          pkgs.rPackages.testthat
+          rPackages.testthat
+          qutebrowser
+          chromium
           pandoc
           nlopt
           entr
+          texliveFull
         ];
       };
     });

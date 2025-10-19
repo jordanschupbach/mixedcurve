@@ -1,6 +1,7 @@
 # -*- origami-fold-style: triple-braces -*-
 
 # {{{ License
+
 # Copyright (C) <2025>  <Jordan Schupbach>
 #
 #     This program is free software: you can redistribute it and/or modify
@@ -15,12 +16,15 @@
 #
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 # }}} License
 
 # {{{ Header
+
 # Name: frame.r
 # Author: Jordan Schupbach
 # Description: Simple data structure for a point process
+
 # }}} Header
 
 # {{{ pp()
@@ -33,14 +37,14 @@
 #' @author Jordan Schupbach
 #' @export
 #' @examples
-#' pp1 <- pp(
+#' pp1 <- mixedcurve::pp(
 #'   points = data.frame(x = runif(100, 0, 1)),
 #'   win = list(c(0, 1)),
 #'   covs = list()
 #' )
 #' plot(pp1, tick_col = "red")
 #'
-#' pp2 <- pp(
+#' pp2 <- mixedcurve::pp(
 #'   points = data.frame(x = runif(100, 0, 1), y = runif(100, 0, 1)),
 #'   win = list(c(0, 1)),
 #'   covs = list()
@@ -100,12 +104,12 @@ plot.pp <- function(pp, main = "Density of X",
 #' @author Jordan Schupbach
 #' @export
 #' @examples
-#' pp1 <- pp(
+#' pp1 <- mixedcurve::pp(
 #'     points = data.frame(x = runif(100, 0, 1)),
 #'     win = list(c(0, 1)),
 #'     covs = list()
 #' )
-#' df1 <- as.data.frame(pp)
+#' df1 <- mixedcurve::as.data.frame(pp)
 as.data.frame.pp <- function(pp) {
   as.data.frame(pp$points)
 }
@@ -113,6 +117,7 @@ as.data.frame.pp <- function(pp) {
 
 # {{{ is.pp()
 
+# TODO: write docs
 as_pp <- function(x) {
   structure(list(points = x$points,
                  win = x$win,
@@ -124,6 +129,7 @@ as_pp <- function(x) {
 
 # {{{ is.pp()
 
+# TODO: write docs
 is_pp <- function(x) {
   class(x) == "pp"
 }
@@ -131,6 +137,7 @@ is_pp <- function(x) {
 # }}} is.pp()
 
 # {{{ rppp_r()
+
 #' Generate an inhomogeneous poisson point proccess
 #'
 #' Uses method of (TODO: source method for ihppp)
@@ -140,8 +147,8 @@ is_pp <- function(x) {
 #' @author Jordan Schupbach
 #' @export
 #' @examples
-#' lmax <- estimate_max(bart_simpson, c(0,6), 10000)
-#' system.time(x <- rppp_r(bart_simpson, c(0,6), lmax))
+#' lmax <- mixedcurve::estimate_max(mixedcurve::bart_simpson, c(0,6), 10000)
+#' system.time(x <- mixedcurve::rppp_r(mixedcurve::bart_simpson, c(0,6), lmax))
 rppp_r <- function(lambda, dom, lmax) {
   fmax <- lmax
   lambda_ret <- function(x, fmax) {
@@ -167,8 +174,8 @@ rppp_r <- function(lambda, dom, lmax) {
 #' @author Jordan Schupbach
 #' @export
 #' @examples
-#' lmax <- estimate_max(bart_simpson, c(0,6), 10000)
-#' system.time(x <- rppp_f(fun(bart_simpson, c(0,6)))
+#' lmax <- mixedcurve::estimate_max(mixedcurve::bart_simpson, c(0,6), 10000)
+#' x <- mixedcurve::rppp_f(mixedcurve::fun(mixedcurve::bart_simpson, c(0,6))
 rppp_f <- function(fun) {
   lambda <- fun$f
   dom <- fun$dom
@@ -202,7 +209,7 @@ rppp_f <- function(fun) {
 #' @author Jordan Schupbach
 #' @export
 #' @examples
-#' seq_centroids(0, 1, 100)
+#' mixedcurve::seq_centroids(0, 1, 100)
 seq_centroids <- function(from, to, length.out) {
   xseq <- seq(from = from, to = to, length.out = length.out + 1)
   half_width <- diff(xseq)[1] / 2
@@ -220,8 +227,9 @@ seq_centroids <- function(from, to, length.out) {
 #' @author Jordan Schupbach
 #' @export
 #' @examples
-#' pp1 <- pp(data.frame(x = runif(100, 0, 1)), list(c(0, 1)), list())
-#' get_bt_counts(pp1)
+#' pp1 <- mixedcurve::pp(data.frame(x = runif(100, 0, 1)),
+#'                       list(c(0, 1)), list())
+#' mixedcurve::get_bt_counts(pp1)
 get_bt_counts <- function(frame, cells = 100) {
   if (length(frame$win) == 1) {
     left <- frame$win[[1]][1]

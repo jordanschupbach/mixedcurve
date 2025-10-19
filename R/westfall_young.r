@@ -1,6 +1,7 @@
 # -*- origami-fold-style: triple-braces -*-
 
 # {{{ License
+
 # Copyright (C) <2025>  <Jordan Schupbach>
 #
 #     This program is free software: you can redistribute it and/or modify
@@ -15,11 +16,13 @@
 #
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 # }}} License
 
 # {{{ perm fanova
 
 #' Permutation function for functional ANOVA
+#'
 #' @param dataf - data frame with columns x, y, grp, id
 #' @param grp_col - name of the group column
 #' @param id_col - name of the subject ID column
@@ -34,11 +37,13 @@ gen_perm_fanova <- function(dataf, grp_col = "grp", id_col = "id") {
   ret[[grp_col]] <- new_mapping[as.character(ret[[id_col]])]
   ret
 }
+
 # }}} perm fanova
 
 # {{{ gen_pvals_anova
 
 #' Generate p-values using ANOVA (requires data to be on a grid)
+#'
 #' @param dataf - data frame with columns x, y, grp, id
 #' @param xseq - sequence of x values to test
 #' @return A numeric vector of p-values corresponding to each x in xseq
@@ -52,11 +57,13 @@ gen_pvals_anova <- function(dataf, xseq) {
   }
   pvals
 }
+
 # }}} gen_pvals_anova
 
 # {{{ westfall-young full
 
 #' Westfall-Young full method
+#'
 #' @param dataf - data frame with columns x, y, grp, id
 #' @param xseq - sequence of x values to test
 #' @param nperm - number of permutations
@@ -104,6 +111,7 @@ wy_full <- function(dataf, xseq, nperm, gen_pvals_fun,
 # {{{ Westfall-young one-step
 
 #' Westfall-Young (Cox-Lee) one-step method
+#'
 #' @param dataf - data frame with columns x, y, grp, id
 #' @param xseq - sequence of x values to test
 #' @param nperm - number of permutations

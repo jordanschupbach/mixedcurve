@@ -15,8 +15,9 @@ get_bt_counts(frame, cells = 100)
 Gets centroids and counts for a fine-pixel approximation
 }
 \examples{
-pp1 <- pp(data.frame(x = runif(100, 0, 1)), list(c(0, 1)), list())
-get_bt_counts(pp1)
+pp1 <- mixedcurve::pp(data.frame(x = runif(100, 0, 1)),
+                      list(c(0, 1)), list())
+mixedcurve::get_bt_counts(pp1)
 }
 \author{
 Jordan Schupbach

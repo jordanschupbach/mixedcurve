@@ -48,6 +48,21 @@ fun <- function(lambda, dom) {
 # }}} fun()
 
 # {{{ plot.fun()
+#' plot.fun
+#'
+#' Plot method for fun objects
+#' @param lambda - a fun object
+#' @param dom - domain to plot over (defaults to lambda$dom)
+#' @param evals - number of evaluation points
+#' @param add - whether to add to existing plot
+#' @param ... - additional arguments to plot()
+#' @author Jordan Schupbach
+#' @export
+#' @examples
+#' myfun <- mixedcurve::fun((function(x) sqrt(x)),
+#'   dom = c(0, 1000)
+#' )
+#' mixedcurve::plot.fun(myfun)
 plot.fun <- function(lambda, dom = NULL, evals = 1000,
                      add = FALSE, ...) {
   if (is.null(dom)) {

@@ -1,14 +1,15 @@
 ---
-title: "my-vignette"
+title: "My Vignette"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{my-vignette}
+  %\VignetteIndexEntry{My Vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk(
+```{r}
+#| include: false
+knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )

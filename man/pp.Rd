@@ -17,14 +17,14 @@ pp(points, win, covs)
 A general datastructure for ppps
 }
 \examples{
-pp1 <- pp(
+pp1 <- mixedcurve::pp(
   points = data.frame(x = runif(100, 0, 1)),
   win = list(c(0, 1)),
   covs = list()
 )
 plot(pp1, tick_col = "red")
 
-pp2 <- pp(
+pp2 <- mixedcurve::pp(
   points = data.frame(x = runif(100, 0, 1), y = runif(100, 0, 1)),
   win = list(c(0, 1)),
   covs = list()

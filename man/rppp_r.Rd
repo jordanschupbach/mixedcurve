@@ -17,8 +17,8 @@ rppp_r(lambda, dom, lmax)
 Uses method of (TODO: source method for ihppp)
 }
 \examples{
-lmax <- estimate_max(bart_simpson, c(0,6), 10000)
-system.time(x <- rppp_r(bart_simpson, c(0,6), lmax))
+lmax <- mixedcurve::estimate_max(mixedcurve::bart_simpson, c(0,6), 10000)
+system.time(x <- mixedcurve::rppp_r(mixedcurve::bart_simpson, c(0,6), lmax))
 }
 \author{
 Jordan Schupbach

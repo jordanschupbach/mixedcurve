@@ -17,7 +17,7 @@ seq_centroids(from, to, length.out)
 Creates a fixed-width sequence and returns centroids in the sequence
 }
 \examples{
-seq_centroids(0, 1, 100)
+mixedcurve::seq_centroids(0, 1, 100)
 }
 \author{
 Jordan Schupbach

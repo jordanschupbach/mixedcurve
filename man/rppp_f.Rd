@@ -13,8 +13,8 @@ rppp_f(fun)
 Uses method of (TODO: source method for ihppp)
 }
 \examples{
-lmax <- estimate_max(bart_simpson, c(0,6), 10000)
-system.time(x <- rppp_f(fun(bart_simpson, c(0,6)))
+lmax <- mixedcurve::estimate_max(mixedcurve::bart_simpson, c(0,6), 10000)
+x <- mixedcurve::rppp_f(mixedcurve::fun(mixedcurve::bart_simpson, c(0,6))
 }
 \author{
 Jordan Schupbach

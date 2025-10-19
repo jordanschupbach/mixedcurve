@@ -7,6 +7,7 @@ fundata1 <- mixedcurve::gen_fanova_data(
   pxargs = list(min = 0, max = 1),
   white_noise = TRUE, cov_scale = 0.05, gpn = 1000
 )
+
 fundata1$df
 par(mfrow = c(3, 2))
 mixedcurve::dark_mode()

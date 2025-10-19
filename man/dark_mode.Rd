@@ -18,6 +18,6 @@ light for better visibility. It also defines a custom color
 palette suitable for dark mode.
 }
 \examples{
-dark_mode()
+mixedcurve::dark_mode()
 plot(1:10, 1:10, main = "Dark Mode Plot", xlab = "X-axis", ylab = "Y-axis")
 }

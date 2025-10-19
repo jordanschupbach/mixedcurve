@@ -22,5 +22,5 @@ If not, it installs the package from CRAN and then loads
 it into the R session.
 }
 \examples{
-use_package("ggplot2")
+mixedcurve::use_package("ggplot2")
 }
