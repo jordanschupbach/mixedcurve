@@ -1,102 +1,178 @@
+# mixed curve (n-w)
 
 # load libraries
 library(Matrix)
 library(lme4)
+
+# {{{ generate data
+
 set.seed(300)
 # simulate data
 n <- 200
-nind <- 20
+nind <- 50
 x <- runif(n * nind)
-xhlp <- cbind(rep(1, n * nind), x, x^2)
+xmat <- cbind(rep(1, n * nind), x, x^2)
 betas_true <- c(2.323, 1.73, -1.4)
 bs_true <- rnorm(nind * 3, 0, 0.21)
 id <- rep(1:nind, each = n)
-z_blocks <- lapply(seq_len(ncol(xhlp)),
-                   function(j) lapply(split(xhlp[, j], id), as.matrix))
-z_blocks <- lapply(seq_along(Z_blocks[[1]]), function(i) {
-  do.call(cbind, lapply(Z_blocks, function(block) block[[i]]))
+z_blocks <- lapply(seq_len(ncol(xmat)),
+                   function(j) lapply(split(xmat[, j], id), as.matrix))
+z_blocks <- lapply(seq_along(z_blocks[[1]]), function(i) {
+  do.call(cbind, lapply(z_blocks, function(block) block[[i]]))
 })
 zmat <- bdiag(z_blocks)
-z_blocks_mat <- lapply(1:1, function(j) lapply(split(xhlp[, j], id), as.matrix))
-z_blocks_mat <- lapply(seq_along(Z_blocks_mat[[1]]), function(i) {
-  do.call(cbind, lapply(Z_blocks_mat, function(block) block[[i]]))
-})
-z_blocks_mat
-zmat <- bdiag(Z_blocks_mat)
-eta_true <- as.vector(xhlp %*% betasTrue + Z %*% bTrue)
-y <- rpois(n * nind, exp(etaTrue))
+eta_true <- as.vector(xmat %*% betas_true + zmat %*% bs_true)
+eta_true <- as.vector(xmat %*% betas_true)
 
-gauss_kern <- function(x) {
-  exp((-1 / 2) * ((x)^2))
+x <- runif(n)
+xmat <- cbind(rep(1, n), x, x^2)
+eta_true <- as.vector(xmat %*% betas_true)
+y <- rpois(n, exp(eta_true))
+gauss_kern <- function(pt) {
+  exp((-1 / 2) * ((pt)^2))
 }
-k_h <- function(x, h) {
-  gauss_kern(x / h) / h
+k_h <- function(pt, h) {
+  gauss_kern(pt / h) / h
 }
-k_ih <- function(x, qry, h) {
-  k_h(x - qry, h)
+k_ih <- function(pt, qry, h) {
+  k_h(pt - qry, h)
 }
-#### query pt
-query_pt <- function(qry, bw) {
-  kernel_weights <- k_ih(x, qry, bw)
-  betas <- matrix(rep(log(mean(y)), 1), 1, 1)
-  bs <- matrix(rnorm(nind * 1, 0, 1), nind, 1)
-  eta <- xhlp[, 1] %*% betas + zmat %*% bs
-  ylogy <- function(y) {
-    ifelse(y == 0, rep(0, length(y)), y * log(y))
-  }
-  deviance <- 2 * sum(ylogy(y) - y * eta - (y - exp(eta)))
-  deviance_old <- 1e30
-  iteration <- 0
-  tol <- 1e-6
-  # IWLS loop
-  while (((deviance_old - deviance) / deviance_old) > tol) {
-    iteration <- iteration + 1
-    z <- as.numeric(eta + exp(-eta) * (y - exp(eta)))
-    wz <- z * kernel_weights
-    w <- c(exp(as.numeric(eta)))
-    lm_update <- lmer(
-      wz ~ -1 + kernel_weights + (-1 + kernel_weights | id), weight = w
-    )
-    betas <- matrix(as.numeric(fixef(lm_update)), 1, 1)
-    bs <- as.numeric(t(do.call(cbind, ranef(lm_update)$id)))
-    eta <- as.numeric(xhlp[, 1] %*% betas + zmat %*% bs)
-    deviance_old <- deviance
-    deviance <- 2 * sum(ylogy(y) - y * eta - (y - exp(eta)))
-  }
-  list(betas = betas, bs = bs, qry = qry)
-}
+xseq <- seq(0, 1, length.out = 1000)
+vals <- numeric(length(xseq))
+coefmat <- matrix(0, nrow = length(xseq), ncol = 20)
+str(coefmat)
 cl <- parallel::makeCluster(31)
-parallel::clusterEvalQ(cl, {
-  library(Matrix)
-  library(lme4)
+invisible(parallel::clusterEvalQ(cl, { library(lme4) }))
+parallel::clusterExport(cl, c("x", "y", "id", "k_ih", "k_h", "gauss_kern"))
+fits <- parallel::parLapply(cl, xseq, function(qry) {
+  kernel_weights <- sqrt(k_ih(x, qry, 0.03))
+  glm1 <- glmer(y ~ 1 + (1 | id), family = "poisson", weights = kernel_weights)
+  list(fixef = as.numeric(fixef(glm1)[1]),
+       coefs = as.numeric(coef(glm1)$id[[1]]))
 })
-parallel::clusterExport(cl, c("x", "y", "id", "nind", "n", "xhlp", "Z", "Z_mat",
-                              "bTrue", "k_h", "k_ih", "gauss_kern", "query_pt"))
-xseq <- seq(0.0, 0.98, by = 0.01)
-fits <- parallel::parLapply(cl,
-  xseq, function(qry) {
-    query <- query_pt(qry, 0.5)
-    list(betas = query$betas, qry = query$qry)
-  }
-)
 parallel::stopCluster(cl)
-ft <- unlist(lapply(fits, function(elmt) {
-  elmt$betas
-}))
-plot(xseq, exp(ft), type = "l", ylim = c(0, 40))
+fixefs <- unlist(lapply(fits, function(elmt) exp(elmt$fixef)))
+coefs <- do.call(rbind, lapply(fits, function(elmt) exp(elmt$coefs)))
+plot(x, y, col = id)
+lines(xseq, fixefs, col = "black", lwd = 3)
 
-# plot results
-plot(x, exp(eta), col = id, ylim = range(c(exp(eta), y)),
+
+plot(x, exp(eta_true))
+gauss_kern <- function(pt) {
+  exp((-1 / 2) * ((pt)^2))
+}
+k_h <- function(pt, h) {
+  gauss_kern(pt / h) / h
+}
+k_ih <- function(pt, qry, h) {
+  k_h(pt - qry, h)
+}
+xseq <- seq(0, 1, length.out = 1000)
+vals <- numeric(length(xseq))
+coefmat <- matrix(0, nrow = length(xseq), ncol = 20)
+str(coefmat)
+cl <- parallel::makeCluster(31)
+invisible(parallel::clusterEvalQ(cl, { library(lme4) }))
+parallel::clusterExport(cl, c("x", "y", "id", "k_ih", "k_h", "gauss_kern"))
+fits <- parallel::parLapply(cl, xseq, function(qry) {
+  kernel_weights <- sqrt(k_ih(x, qry, 0.03))
+  glm1 <- glm(y ~ 1, family = "poisson", weights = kernel_weights)
+  list(fixef = as.numeric(coef(glm1)[1]))
+})
+
+
+
+
+
+parallel::stopCluster(cl)
+fixefs <- unlist(lapply(fits, function(elmt) exp(elmt$fixef)))
+lines(xseq, fixefs, col = "red", lwd = 3)
+coefs <- do.call(rbind, lapply(fits, function(elmt) exp(elmt$coefs)))
+plot(x, y, col = id)
+lines(xseq, fixefs, col = "black", lwd = 3)
+
+
+
+
+
+
+
+
+
+nrow(xseq_mat)
+
+z_blocks <- lapply(seq_len(ncol(xseq_mat)),
+                   function(j) lapply(split(xseq_mat[, j], id), as.matrix))
+
+zseq_blocks <- lapply(seq_along(zseq_blocks[[1]]), function(i)
+  do.call(cbind, lapply(zseq_blocks, function(block) block[[i]]))
+)
+str(zseq_blocks)
+zmat_seq <- bdiag(zseq_blocks)
+nrow(zmat_seq)
+ncol(zmat_seq)
+etaseq <- as.vector(xmat %*% betas_true + zmat_seq %*% bs_true)
+
+
+
+
+# }}} generate data
+
+# {{{ Fit model
+
+gauss_kern <- function(pt) {
+  exp((-1 / 2) * ((pt)^2))
+}
+k_h <- function(pt, h) {
+  gauss_kern(pt / h) / h
+}
+k_ih <- function(pt, qry, h) {
+  k_h(pt - qry, h)
+}
+xseq <- seq(0, 1, length.out = 1000)
+vals <- numeric(length(xseq))
+coefmat <- matrix(0, nrow = length(xseq), ncol = 20)
+str(coefmat)
+cl <- parallel::makeCluster(31)
+invisible(parallel::clusterEvalQ(cl, { library(lme4) }))
+parallel::clusterExport(cl, c("x", "y", "id", "k_ih", "k_h", "gauss_kern"))
+fits <- parallel::parLapply(cl, xseq, function(qry) {
+  kernel_weights <- sqrt(k_ih(x, qry, 0.03))
+  glm1 <- glmer(y ~ 1 + (1 | id), family = "poisson", weights = kernel_weights)
+  list(fixef = as.numeric(fixef(glm1)[1]),
+       coefs = as.numeric(coef(glm1)$id[[1]]))
+})
+parallel::stopCluster(cl)
+fixefs <- unlist(lapply(fits, function(elmt) exp(elmt$fixef)))
+coefs <- do.call(rbind, lapply(fits, function(elmt) exp(elmt$coefs)))
+plot(x, y, col = id)
+lines(xseq, fixefs, col = "black", lwd = 3)
+for (i in seq_len(ncol(coefmat))) {
+  lines(xseq, coefs[, i], col = adjustcolor(i, 0.8), lwd = 3)
+}
+lines(xseq, fixefs, col = "black", lwd = 5)
+xseq <- seq(0, 1, length.out = 1000)
+xseq_mat <- cbind(rep(1, length(xseq)), xseq, xseq^2)
+plot(x, y, col = adjustcolor(id, 0.002),
+     ylim = range(c(y, exp(eta_true))),
      ylab = "Count / lambda = exp(eta)", xlab = "x")
-sortedx <- lapply(split(x, id), function(elmt) sort(elmt, index.return = TRUE))
-split_true_eta <- split(etaTrue, id)
-split_y <- split(y, id)
-for (i in seq_along(split_y)) {
-  lines(sortedx[[i]]$x, exp(split_true_eta[[i]][sortedx[[i]]$ix]), col = i)
+for (i in 1:nind) {
+  xseq_mat %*% (betas_true + matrix(bs_true, nind, 3)[i,])
+  lines(xseq, exp(xseq_mat %*% (betas_true + matrix(bs_true, nind, 3)[i,])),
+  lty = 2, col = adjustcolor(i, 0.5), lwd = 3)
 }
-for (i in seq_along(split_y)) {
-  points(sortedx[[i]]$x, split_y[[i]][sortedx[[i]]$ix],
-         col = adjustcolor(i, 0.3), pch = 17)
-}
-legend("topleft", c("True", "Fitted", "Actual Data"), lty = c(1, NA, NA),
-       pch = c(NA, 1, 17), col = c("black", "black"), bty = "n")
+lines(xseq, coefs[, 1], col = adjustcolor(1, 0.8), lwd = 3)
+lines(xseq, coefs[, 2], col = adjustcolor(2, 0.8), lwd = 3)
+lines(xseq, coefs[, 3], col = adjustcolor(3, 0.8), lwd = 3)
+lines(xseq, coefs[, 4], col = adjustcolor(4, 0.8), lwd = 3)
+lines(xseq, coefs[, 5], col = adjustcolor(4, 0.8), lwd = 3)
+lines(xseq, coefs[, 6], col = adjustcolor(4, 0.8), lwd = 3)
+lines(xseq, coefs[, 7], col = adjustcolor(4, 0.8), lwd = 3)
+lines(xseq, coefs[, 8], col = adjustcolor(4, 0.8), lwd = 3)
+lines(xseq, coefs[, 9], col = adjustcolor(4, 0.8), lwd = 3)
+lines(xseq, coefs[, 10], col = adjustcolor(4, 0.8), lwd = 3)
+
+
+# }}} Query a point
+
+#

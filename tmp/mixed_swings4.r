@@ -20,11 +20,11 @@ z_blocks <- lapply(seq_along(z_blocks[[1]]), function(i) {
 })
 zmat <- bdiag(z_blocks)
 eta_true <- as.vector(xhlp %*% betas_true + zmat %*% bs_true)
-y <- rpois(n * nind, exp(etaTrue))
+y <- rpois(n * nind, exp(eta_true))
 # initial values for IWLS
 betas <- rep(log(mean(y)), ncol(xhlp))
 bs <- matrix(rnorm(nind * ncol(xhlp), 0, 1), nind, ncol(xhlp))
-eta <- xhlp %*% betas + Z %*% bTrue
+eta <- as.numeric(xhlp %*% betas + zmat %*% bs_true)
 id <- rep(1:nind, each = n)
 ylogy <- function(y) {
   ifelse(y == 0, rep(0, length(y)), y * log(y))
@@ -34,7 +34,7 @@ deviance_old <- 1e30
 iteration <- 0
 tol <- 1e-6
 # IWLS loop
-while (((deviance_old - deviance) / devianceOld) > tol) {
+while (((deviance_old - deviance) / deviance_old) > tol) {
   iteration <- iteration + 1
   z <- as.numeric(eta + exp(-eta) * (y - exp(eta)))
   w <- c(exp(as.numeric(eta)))
@@ -43,9 +43,9 @@ while (((deviance_old - deviance) / devianceOld) > tol) {
       I(xhlp[, 2]^2) + (1 + xhlp[, 2] + I(xhlp[, 2]^2) | id),
     weight = w
   )
-  betas <- matrix(as.numeric(fixef(lmUpdate)), ncol(xhlp), 1)
-  bs <- as.numeric(t(do.call(cbind, ranef(lmUpdate)$id)))
-  eta <- as.numeric(xhlp %*% betas + Z %*% bs)
+  betas <- matrix(as.numeric(fixef(lm_update)), ncol(xhlp), 1)
+  bs <- as.numeric(t(do.call(cbind, ranef(lm_update)$id)))
+  eta <- as.numeric(xhlp %*% betas + zmat %*% bs)
   deviance_old <- deviance
   deviance <- 2 * sum(ylogy(y) - y * eta - (y - exp(eta)))
 }
