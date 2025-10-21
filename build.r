@@ -1,5 +1,1 @@
-rmarkdown::render("./vignettes/my-vignette.rmd",
-  output_format = "all",
-  output_file = "my-vignette.pdf",
-  output_dir = "./vignettes"
-)
+rmarkdown::render("./vignettes/myvignette.Rmd", output_format = "all", output_file = "myvignette.html", output_dir = "./vignettes")

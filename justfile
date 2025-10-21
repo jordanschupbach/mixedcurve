@@ -1,3 +1,6 @@
+build-vignette:
+    Rscript -e "rmarkdown::render('./vignettes/myvignette.Rmd', output_format = 'all', output_file = 'myvignette.html', output_dir = './vignettes')"
+
 test-watch:
     trap 'exit' INT; while sleep 0.1; do find tests/testthat R -type f \( -iname '*.r' \) | entr -d sh -c 'clear; Rscript -e "devtools::test()"'; done
 
@@ -15,3 +18,5 @@ test:
 
 r-repl:
     nix develop . --command bash -c "R"
+
+

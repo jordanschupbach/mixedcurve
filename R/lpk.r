@@ -18,7 +18,6 @@
 # }}} License
 
 # {{{ lpk
-
 #' Local polynomial Kernel regression
 #'
 #' @param formula A formula object specifying the model to be fitted of
@@ -36,24 +35,29 @@ lpk_query <- function(formula,
                       degree = 0,
                       kernel = mixedcurve::gauss_kern,
                       h) {
-  weighted_data <- lm_kernel_weights(formula,
+  weighted_data <- mixedcurve::lm_kernel_weights(formula,
     data = data,
     bwidth = h, query = query
   )
   lm_fit <- lm(w_y ~ . - 1, data = weighted_data)
-  list(
-    query = query,
-    weights = weighted_data, coefs = coef(lm_fit),
-    queries = c(
-      coef(lm_fit)[1],
+  queries <- coef(lm_fit)[1]
+  print(length(coef(lm_fit))[1])
+  if (length(coef(lm_fit)) > 1) {
+    queries <- c(
+      queries,
       sapply(
         2:length(coef(lm_fit)),
         function(i) coef(lm_fit)[1] + coef(lm_fit)[i]
       )
     )
+  }
+  list(
+    query = query,
+    weights = weighted_data,
+    coefs = coef(lm_fit),
+    queries = queries
   )
 }
-
 lpk <- function(formula,
                 queries,
                 data,
@@ -110,7 +114,6 @@ lpk <- function(formula,
   class(lpk_mod) <- "lpkMod"
   lpk_mod
 }
-
 get_queries <- function(lpkmod) {
   if (class(lpkmod) == "lpkMod" || class(lpkmod) == "glpkMod") {
     do.call(rbind, lapply(lpkmod$queries, function(x) x$queries))
@@ -118,7 +121,6 @@ get_queries <- function(lpkmod) {
     stop("Object is not of class lpkMod")
   }
 }
-
 # }}} lpk
 
 # {{{ glpk

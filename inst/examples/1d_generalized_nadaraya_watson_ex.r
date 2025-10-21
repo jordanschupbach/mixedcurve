@@ -1,5 +1,3 @@
-parallel
-
 # 1. Define the true curves
 tf <- function(t, i) {
   exp(3 * exp(mixedcurve::m3(t, i)) - 2.7)

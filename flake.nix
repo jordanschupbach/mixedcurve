@@ -10,6 +10,8 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
+
+      pythonPkgs = pkgs.python3.pkgs;
       mixedcurve = pkgs.rPackages.buildRPackage {
         name = "mixedcurve";
         src = ./.;
@@ -52,6 +54,26 @@
       ];
     in {
       devShells.default = pkgs.mkShell {
+        packages = [ 
+          pkgs.hello
+          (pkgs.python3.withPackages (python-pkgs:
+            with python-pkgs; [
+              pytest
+              # select Python packages here
+              # numpy232
+              # pypkg001
+              python-lsp-server
+              numpy
+              matplotlib
+              # matplotlib
+              # requests
+            ]))
+           pkgs.R
+           pkgs.rPackages.languageserver
+           pkgs.julia
+           pkgs.octaveFull
+           pkgs.lua
+        ];
         nativeBuildInputs = [pkgs.bashInteractive];
         buildInputs = with pkgs; [
           mixedcurve
@@ -69,12 +91,12 @@
           rPackages.nloptr
           rPackages.languageserver
           rPackages.testthat
-          qutebrowser
-          chromium
-          pandoc
-          nlopt
-          entr
-          texliveFull
+          # chromium
+          # qutebrowser
+          # pandoc
+          # nlopt
+          # entr
+          # texliveFull
         ];
       };
     });

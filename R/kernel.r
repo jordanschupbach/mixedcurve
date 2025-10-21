@@ -94,27 +94,42 @@ or K_h(x * y | grp)).")
   if (!all(dim_labels %in% colnames(data))) {
     stop("Some dimension labels in the kernel term are not found in the data.")
   }
-  dmat <- cbind(
-    data[[response_term]],
-    model.matrix(as.formula(paste0("~", kterm_rhs)), data)
-  )
-  colnames(dmat) <- c(
-    "y", "intercept",
-    unlist(lapply(
-      colnames(dmat)[3:length(colnames(dmat))],
-      function(x) {
-        if (grepl(":", x)) {
-          paste(paste0("", strsplit(x, ":")[[1]]),
-            collapse = ":"
-          )
-        } else {
-          paste0("", x)
+  str(data)
+  response_term
+  if (!is.na(kterm_rhs)) {
+    dmat <- cbind(
+      data[[response_term]],
+      model.matrix(as.formula(paste0("~", kterm_rhs)), data)
+    )
+  } else {
+    dmat <- cbind(
+      data[[response_term]],
+      model.matrix(as.formula(paste0("~ 1")), data)
+    )
+  }
+  if (!is.na(kterm_rhs)) {
+    colnames(dmat) <- c(
+      "y", "intercept",
+      unlist(lapply(
+        colnames(dmat)[3:length(colnames(dmat))],
+        function(x) {
+          if (grepl(":", x)) {
+            paste(paste0("", strsplit(x, ":")[[1]]),
+              collapse = ":"
+            )
+          } else {
+            paste0("", x)
+          }
         }
-      }
-    ))
-  )
+      ))
+    )
+  } else {
+    colnames(dmat) <- c("y", "intercept")
+  }
   dim_data <- do.call(cbind, lapply(dim_labels, function(label) data[[label]]))
-  weights <- sqrt(kern_h(sweep(dim_data, 2, query, FUN = "-"), bwidth))
+  weights <- sqrt(kern_h(sweep(dim_data, 2,
+                               query, FUN = "-"),
+                         bwidth))
   weighted_design_matrix <- sweep(dmat, 1, weights, FUN = "*")
   colnames(weighted_design_matrix) <- paste("w_", colnames(dmat), sep = "")
   as.data.frame(weighted_design_matrix)

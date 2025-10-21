@@ -1,6 +1,7 @@
 # Ignores
 .direnv
 # tmp
-inst/doc
+# inst/doc
 # /doc/
 /Meta/
+# /doc/

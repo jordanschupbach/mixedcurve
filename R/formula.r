@@ -82,17 +82,26 @@ parse_terms <- function(form) {
   for (i in seq_len(nrow(classified))) {
     term <- classified$term[i]
     term_type <- classified$type[i]
+    if (grepl("^K_h\\(", term)) {
+      term_type <- "kernel fixed effect"  # Explicitly set the correct type
+    }
     if (term_type == "kernel fixed effect") {
-      # Extract lhs and rhs from kernel fixed effect
-      matches <- regmatches(term, regexec("K_h\\((.+?)\\|(.+?)\\)", term))
-      lhs <- trimws(matches[[1]][2])
-      rhs <- trimws(matches[[1]][3])
+      matches <- regmatches(
+        term,
+        regexec("K_h\\(([^|]+?)(?:\\s*\\|\\s*([^\\)]+))?\\)", term)
+      )
+      lhs <- trimws(matches[[1]][2])  # Extract lhs
+      rhs <- if (length(matches[[1]]) > 2 &&
+                   !is.na(matches[[1]][3]) && matches[[1]][3] != "") {
+        trimws(matches[[1]][3])  # Extract rhs if present and not empty
+      } else {
+        NA  # Ensure rhs is NA if not present
+      }
       parsed_terms <- rbind(parsed_terms,
                             data.frame(term = term, type = term_type,
                                        lhs = lhs, rhs = rhs,
                                        stringsAsFactors = FALSE))
     } else if (term_type == "random effect") {
-      # Extract lhs and rhs from random effect
       matches <- regmatches(term, regexec("\\((.+?)\\|(.+?)\\)", term))
       if (length(matches[[1]]) > 1) {
         lhs <- trimws(matches[[1]][2])
@@ -102,20 +111,15 @@ parse_terms <- function(form) {
                                          lhs = lhs, rhs = rhs,
                                          stringsAsFactors = FALSE))
       }
-    } else if (term_type == "fixed effect") {
-      # For fixed effects, put the term in lhs; no rhs
+    } else if (term_type == "fixed effect" || term_type == "response") {
       parsed_terms <- rbind(parsed_terms,
                             data.frame(term = term, type = term_type,
-                                       lhs = term, rhs = NA,
-                                       stringsAsFactors = FALSE))
-    } else if (term_type == "response") {
-      # For response, put the term in lhs; no rhs
-      parsed_terms <- rbind(parsed_terms,
-                            data.frame(term = term, type = term_type,
-                                       lhs = term, rhs = NA,
+                                       lhs = term, rhs = NA,  # Set rhs as NA
                                        stringsAsFactors = FALSE))
     }
   }
+  parsed_terms[parsed_terms == "<NA>"] <- NA
+  parsed_terms[parsed_terms == "NA"] <- NA
   rownames(parsed_terms) <- seq_len(nrow(parsed_terms))
   parsed_terms
 }
