@@ -3,6 +3,7 @@ library(Matrix)
 library(lme4)
 
 # {{{ generate data
+
 set.seed(300)
 # simulate data
 n <- 400
@@ -22,10 +23,31 @@ z_blocks <- lapply(seq_along(z_blocks[[1]]), function(i) {
 zmat <- Matrix::bdiag(z_blocks)
 eta_true <- as.vector(xmat %*% betas_true + zmat %*% bs_true)
 y <- rpois(n * nind, exp(eta_true))
+tdf <- data.frame(y = y, x = x, id = as.factor(id))
 plot(x, y, col = id)
 plot(x, exp(eta_true), col = id)
 
 # }}} generate data
+
+
+glpk_query <- function(formula,
+                       query,
+                       data,
+                       degree = 0,
+                       kernel = mixedcurve::gauss_kern,
+                       h, family = "gaussian") {
+  parse_formula <- mixedcurve::parse_terms(formula)
+  print(parse_formula)
+  # weights <- sqrt(mixedcurve::k_ih(data$x, query, h))
+}
+
+
+
+
+
+
+
+
 # {{{ Estimation
 gauss_kern <- function(pt) {
   exp((-1 / 2) * ((pt)^2))

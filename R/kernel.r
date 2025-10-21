@@ -54,8 +54,12 @@ gauss_kern <- function(x) {
 #' @examples
 #' kern_h(0, 1) # Should return 1
 #' kern_h(c(-1, 0, 1), 0.5)
-kern_h <- function(x, h, kern = gauss_kern) {
+kern_h <- function(x, h, kernel_fun = gauss_kern) {
   kern(x / h) / h
+}
+
+kern_ih <- function(pt, qry, kernel_fun, h) {
+  kern_h(pt - qry, h = h, kernel_fun = kernel_fun)
 }
 
 # }}} k_h
