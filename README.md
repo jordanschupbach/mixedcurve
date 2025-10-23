@@ -13,4 +13,5 @@ See the vignettes directory for detailed examples and usage instructions:
  - [Generalized Nadaraya-Watson (1d) Kernel Regression with Covariate](vignettes/gnw_1d_w_covariate/gnw_1d_w_covariate.md)
  - [Generalized Nadaraya-Watson (2d) Kernel Regression](vignettes/gnw_2d/gnw_2d.md)
  - [Generalized Nadaraya-Watson (2d) Kernel Regression with Covariate](vignettes/gnw_2d_w_covariate/gnw_2d_w_covariate.md)
+ - [Generalized Mixed-Curve (1d) Regression](vignettes/gmc_1d/gmc_1d.md)
 
