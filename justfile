@@ -11,6 +11,7 @@ build-all-vignettes:
         else \
             echo "$dir_name.rmd not found in: $dir"; \
         fi; \
+        cp ./vignettes/$dir_name/$dir_name.rmd ./vignettes/$dir_name/$dir_name.md; \
     done
 
 
