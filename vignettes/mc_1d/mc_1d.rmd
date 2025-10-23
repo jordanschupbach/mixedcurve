@@ -1,10 +1,10 @@
 ---
-title: "Nadaraya-Watson (1d) Kernel Regression"
+title: "Nadaraya-Watson (1d) Mixed Curve"
 author: "Jordan Schupbach"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Nadaraya-Watson (1d) Kernel Regression}
+  %\VignetteIndexEntry{Nadaraya-Watson (1d) Mixed Curve}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -21,11 +21,11 @@ knitr::opts_chunk$set(
 
 ## Introduction
 This vignette demonstrates how to use the `mixedcurve` package to fit a
-Nadaraya-Watson kernel regression model to one-dimensional data.
+Nadaraya-Watson mixed-curve regression model to one-dimensional data.
 
 ## Example Usage
 Let's start by simulating some data according to a modified version of the
-doppler function to fit a Nadaraya-Watson curve kernel regression model to.
+doppler function to fit a Nadaraya-Watson mixed-curve regression model to.
 
 <!-- {{{ Simulate Data -->
 ```{r, fig.width=7, fig.height=5, dpi=600, out.width="700px", message=FALSE, warning=FALSE}

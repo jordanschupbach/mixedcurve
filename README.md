@@ -1,6 +1,7 @@
 # mixedcurve
 
-An R package for fitting kernel regression, mixed-curve models and hierarchical mixed-curve models.
+An R package for fitting local polynomial kernel regression, mixed-curve models
+and hierarchical mixed-curve models.
 
 See the vignettes directory for detailed examples and usage instructions:
 
@@ -12,3 +13,4 @@ See the vignettes directory for detailed examples and usage instructions:
  - [Generalized Nadaraya-Watson (1d) Kernel Regression with Covariate](vignettes/gnw_1d_w_covariate/gnw_1d_w_covariate.md)
  - [Generalized Nadaraya-Watson (2d) Kernel Regression](vignettes/gnw_2d/gnw_2d.md)
  - [Generalized Nadaraya-Watson (2d) Kernel Regression with Covariate](vignettes/gnw_2d_w_covariate/gnw_2d_w_covariate.md)
+

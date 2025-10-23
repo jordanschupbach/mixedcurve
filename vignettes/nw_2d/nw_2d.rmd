@@ -103,3 +103,6 @@ invisible(dev.off())
 <!-- }}} Fit NW model -->
 
 ![Nadaraya-Watson Kernel Regression of M2 data](./m2_data_fit.png){width=95%}
+
+
+#### TODO: add WY adjusted test

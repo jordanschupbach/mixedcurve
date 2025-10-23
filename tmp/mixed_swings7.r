@@ -1,8 +1,8 @@
+
 # Simulate some quadratic Poisson data with group-specific curves
 set.seed(300)
 # 1. Define the true curves
 tf <- function(t, i) {
-  # Define the rate function for Poisson data at time t
   exp(3 * exp(mixedcurve::m3(t, i)) - 2.7)
 }
 n <- 10000
@@ -10,7 +10,7 @@ set.seed(1234)
 fundata1 <- mixedcurve::gen_fanova_data(
   f = tf,
   bounds = c(0, 1),
-  n = 1, # Still sensitive to n?
+  n = 1,
   nx = n,
   balanced = TRUE,
   ngrp = 3,

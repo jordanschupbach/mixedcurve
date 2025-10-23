@@ -105,3 +105,6 @@ invisible(dev.off())
 <!-- }}} Fit NW model -->
 
 [![Modified Doppler function data with Nadaraya-Watson fit](./m2_data_fit.png){width=95%}
+
+
+#### TODO: add WY adjusted test

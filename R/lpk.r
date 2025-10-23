@@ -115,9 +115,6 @@ lpk <- function(formula,
 
 # }}} glpk
 
-
-
-
 # {{{ glpk
 
 #' Generalized Local polynomial Kernel regression query
@@ -270,27 +267,108 @@ lpkme <- function(formula,
 }
 # }}} lpkme
 
+
 # {{{ glpkme
-#' Local polynomial Kernel Mixed-Effect regression
-#'
-#' @param formula A formula object specifying the model to be fitted
-#'                of the form y ~ K_h(x | grp) or  y ~ K_h(x) depending
-#'                on whether a grouping variable is present.
-#' @param degree An integer specifying the degree of the local polynomial
-#'               (default is 0 for Nadaraya-Watson estimator).
-#' @param queries A numeric vector of points at which to evaluate
-#'                the fitted values.
-#' @param data A data frame containing the variables in the formula.
-#' @param h A positive numeric value representing the bandwidth for the kernel.
+
+glpkme_query <- function(formula,
+                        query,
+                        data,
+                        degree = 0,
+                        kernel = mixedcurve::gauss_kern,
+                        h, family = "poisson") {
+  # data <- df1
+  # df1$rep <- as.factor(rep(rep(1:20, each = 15), times = 15))
+  # df1 <- data
+  # nrow(df1)
+  # formula <- y ~ K_h(x) + (K_h(x) | id/ rep)
+  # query <- 0.2
+  # h <- 0.20
+  # family <- "poisson"
+  kernel <- mixedcurve::gauss_kern
+  lme4_form <- as.formula(mixedcurve::kernel_to_lme4_formula(formula))
+  parse_terms <- mixedcurve::parse_terms(as.formula(formula))
+  domain_cols <- parse_terms[parse_terms$type == "kernel fixed effect",]$lhs
+  domain_cols <- unlist(strsplit(gsub("\\s+", "", domain_cols), "\\*"))
+  domain_cols <- domain_cols[domain_cols != ""]
+  weights <- mixedcurve::kern_ih(pt = as.matrix(data[,domain_cols, drop = FALSE]),
+                                 qry = query, h = h, kernel_fun = kernel)
+  data$w <- weights
+  glm_fit <- lme4::glmer(
+    lme4_form,
+    data = data,
+    weights = w,
+    family = family
+  )
+  list(
+    query = query,
+    coefs = coef(glm_fit),
+    fixefs = lme4::fixef(glm_fit),
+    ranefs = lme4::ranef(glm_fit)
+  )
+}
+
 glpkme <- function(formula,
-                   queries,
-                   data,
-                   h,
-                   degree = 0,
-                   kernel = mixedcurve::gauss_kern,
-                   family = "poisson",
-                   parallel = FALSE) { }
-# }}} lpkme
+                 queries,
+                 data,
+                 h,
+                 degree = 0,
+                 kernel = mixedcurve::gauss_kern,
+                 family = "gaussian",
+                 parallel = TRUE, cl = NULL) {
+  # TODO: enforce that formula has random effect kernel terms
+  if (is.matrix(queries)) {
+    tqueries <- split(queries, seq_len(nrow(queries)))
+  } else if (is.vector(queries)) {
+    tqueries <- as.list(queries)
+  } else {
+    stop("tqueries must be a matrix or a vector")
+  }
+  #' datas <- data
+  if (parallel) {
+    if (is.null(cl)) {
+      cl <- parallel::makeCluster(parallel::detectCores() - 1, type = "PSOCK")
+      parallel::clusterEvalQ(cl, {
+        library(mixedcurve)
+      })
+      res <- parallel::parLapply(tqueries, function(q, datas) {
+        glpkme_query(formula,
+          query = q,
+          data = datas,
+          degree = degree,
+          kernel = kernel,
+          h = h,
+          family = family
+        )
+      }, cl = cl, datas = data)
+      on.exit(parallel::stopCluster(cl))
+    }
+    res <- parallel::parLapply(tqueries, function(q) {
+      glpkme_query(formula,
+        query = q,
+        data = data,
+        degree = degree,
+        kernel = kernel,
+        h = h,
+        family = family
+      )
+    }, cl = cl)
+  } else {
+    res <- lapply(tqueries, function(q) {
+      glpkme_query(formula,
+        query = q,
+        data = data,
+        degree = degree,
+        kernel = kernel,
+        h = h,
+        family = family
+      )
+    })
+  }
+  glpkme_mod <- list(queries = res, formula = formula, bandwidth = h)
+  class(glpkme_mod) <- "glpkmeMod"
+  glpkme_mod
+}
+# }}} glpkme
 
 
 

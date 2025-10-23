@@ -82,6 +82,7 @@ classify_terms <- function(form) {
 
 # }}} classify terms
 
+# {{{ parse kernel term
 
 parse_kernel_term <- function(term) {
   matches <- regmatches(
@@ -97,9 +98,10 @@ parse_kernel_term <- function(term) {
   list(lhs = lhs, rhs = rhs)
 }
 
-
+# }}} parse kernel term
 
 # {{{ parse terms
+
 parse_terms <- function(form) {
   classified <- classify_terms(form)
   parsed_terms <- data.frame(term = character(), type = character(),
@@ -146,7 +148,6 @@ parse_terms <- function(form) {
                                        stringsAsFactors = FALSE))
     }
   }
-  
   parsed_terms[parsed_terms == "<NA>"] <- NA
   parsed_terms[parsed_terms == "NA"] <- NA
   rownames(parsed_terms) <- seq_len(nrow(parsed_terms))
@@ -155,11 +156,10 @@ parse_terms <- function(form) {
 
 # }}} parse terms
 
+# {{{ kernel_to_lm_formula
 
 kernel_to_lm_formula <- function(formula) {
-  #' formula <- y ~ K_h(x)
   pf <- mixedcurve::parse_terms(formula)
-  #' pf
   if (sum(pf$type == "kernel fixed effect") > 1) {
     stop("Multiple fixed effect kernel terms found in the formula.
 Please include only one fixed effect kernel term or a
@@ -176,12 +176,9 @@ Please use lpkme or glpkme methods for mixed-effects models.")
   response_term <- pf$term[which(pf$type == "response")]
   kfe_term <- pf$term[which(pf$type == "kernel fixed effect")]
   kfe_term_lhs_rhs <- mixedcurve::parse_kernel_term(kfe_term)
-  #' kfe_term_lhs <- kfe_term_lhs_rhs$lhs
   kfe_term_rhs <- kfe_term_lhs_rhs$rhs
   kre_rhs_term <- pf$rhs[which(pf$type == "kernel random effect")]
   kre_lhs_term <- pf$lhs[which(pf$type == "kernel random effect")]
-  #' parsed_kre_lhs_term <- mixedcurve::parse_kernel_term(kre_lhs_term)
-  #' mixedcurve::parse_kernel_term(kre_lhs_term)
   formula_str <- paste0(
     response_term, " ~ ",
     if (!is.na(kfe_term_rhs)) {
@@ -200,10 +197,7 @@ Please use lpkme or glpkme methods for mixed-effects models.")
   as.formula(formula_str)
 }
 
-
-
-
-
+# }}} kernel_to_lm_formula
 
 # {{{ kernel_to_lme4_formula
 
@@ -230,7 +224,6 @@ or (K_h(x * y) | grp / grp2)).")
   response_term <- pf$term[which(pf$type == "response")]
   kfe_term <- pf$term[which(pf$type == "kernel fixed effect")]
   kfe_term_lhs_rhs <- mixedcurve::parse_kernel_term(kfe_term)
-  #' kfe_term_lhs <- kfe_term_lhs_rhs$lhs
   kfe_term_rhs <- kfe_term_lhs_rhs$rhs
   kre_rhs_term <- pf$rhs[which(pf$type == "kernel random effect")]
   kre_lhs_term <- pf$lhs[which(pf$type == "kernel random effect")]
@@ -259,5 +252,5 @@ or (K_h(x * y) | grp / grp2)).")
   as.formula(formula_str)
 }
 
-
 # }}} kernel_to_lme4_formula
+

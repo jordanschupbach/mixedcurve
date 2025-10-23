@@ -3,17 +3,17 @@
 # load libraries
 library(Matrix)
 library(lme4)
-
 # {{{ generate data
-
-set.seed(300)
+set.seed(123)
 # simulate data
-n <- 200
-nind <- 50
+n <- 300
+nind <- 15
 x <- runif(n * nind)
 xmat <- cbind(rep(1, n * nind), x, x^2)
 betas_true <- c(2.323, 1.73, -1.4)
-bs_true <- rnorm(nind * 3, 0, 0.21)
+bs_true <- as.numeric(t(as.matrix(cbind(runif(nind, -.81, 0.81),
+                                        rnorm(nind, 0, 0.03),
+                                        rnorm(nind, 0, 0.01)))))
 id <- rep(1:nind, each = n)
 z_blocks <- lapply(seq_len(ncol(xmat)),
                    function(j) lapply(split(xmat[, j], id), as.matrix))
@@ -22,12 +22,10 @@ z_blocks <- lapply(seq_along(z_blocks[[1]]), function(i) {
 })
 zmat <- bdiag(z_blocks)
 eta_true <- as.vector(xmat %*% betas_true + zmat %*% bs_true)
-eta_true <- as.vector(xmat %*% betas_true)
-
-x <- runif(n)
-xmat <- cbind(rep(1, n), x, x^2)
-eta_true <- as.vector(xmat %*% betas_true)
-y <- rpois(n, exp(eta_true))
+y <- rpois(n * nind, exp(eta_true))
+plot(x, y, col = adjustcolor(id, 0.2), pch = 20)
+points(x, exp(eta_true), col = adjustcolor(id, 1.0), pch = 20)
+df1 <- data.frame(y = y, x = x, id = as.factor(id))
 gauss_kern <- function(pt) {
   exp((-1 / 2) * ((pt)^2))
 }
@@ -37,24 +35,28 @@ k_h <- function(pt, h) {
 k_ih <- function(pt, qry, h) {
   k_h(pt - qry, h)
 }
-xseq <- seq(0, 1, length.out = 1000)
+xseq <- seq(0, 1, length.out = 100)
 vals <- numeric(length(xseq))
-coefmat <- matrix(0, nrow = length(xseq), ncol = 20)
-str(coefmat)
 cl <- parallel::makeCluster(31)
 invisible(parallel::clusterEvalQ(cl, { library(lme4) }))
-parallel::clusterExport(cl, c("x", "y", "id", "k_ih", "k_h", "gauss_kern"))
+parallel::clusterExport(cl, c("df1", "k_ih", "k_h", "gauss_kern"))
 fits <- parallel::parLapply(cl, xseq, function(qry) {
-  kernel_weights <- sqrt(k_ih(x, qry, 0.03))
-  glm1 <- glmer(y ~ 1 + (1 | id), family = "poisson", weights = kernel_weights)
+  kernel_weights <- sqrt(k_ih(df1$x, qry, 0.03))
+  df1$w <- kernel_weights
+  glm1 <- glmer(y ~ 1 + (1 | id), family = "poisson", weights = w, data = df1)
   list(fixef = as.numeric(fixef(glm1)[1]),
        coefs = as.numeric(coef(glm1)$id[[1]]))
 })
 parallel::stopCluster(cl)
 fixefs <- unlist(lapply(fits, function(elmt) exp(elmt$fixef)))
 coefs <- do.call(rbind, lapply(fits, function(elmt) exp(elmt$coefs)))
-plot(x, y, col = id)
+mixedcurve::dark_mode()
+plot(x, y, col = adjustcolor(id, 0.2), pch = 20)
+points(x, exp(eta_true), col = adjustcolor(id, 1.0))
 lines(xseq, fixefs, col = "black", lwd = 3)
+for(i in seq_len(ncol(coefs))) {
+  lines(xseq, coefs[, i], col = adjustcolor(i, 0.8), lwd = 3)
+}
 
 
 plot(x, exp(eta_true))
@@ -70,7 +72,6 @@ k_ih <- function(pt, qry, h) {
 xseq <- seq(0, 1, length.out = 1000)
 vals <- numeric(length(xseq))
 coefmat <- matrix(0, nrow = length(xseq), ncol = 20)
-str(coefmat)
 cl <- parallel::makeCluster(31)
 invisible(parallel::clusterEvalQ(cl, { library(lme4) }))
 parallel::clusterExport(cl, c("x", "y", "id", "k_ih", "k_h", "gauss_kern"))

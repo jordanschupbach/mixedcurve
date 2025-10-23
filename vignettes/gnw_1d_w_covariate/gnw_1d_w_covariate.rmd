@@ -131,3 +131,6 @@ invisible(dev.off())
 <!-- }}} Fit GNW model -->
 
 ![Functional Poisson data with GNW fit](./gnw_1d_poisson_fit.png){width=95%}
+
+
+#### TODO: add WY adjusted test

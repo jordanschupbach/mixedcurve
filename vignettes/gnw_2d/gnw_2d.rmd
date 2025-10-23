@@ -133,3 +133,4 @@ dev.off()
 ![Functional Poisson data](./gnw_2d_poisson_fit.png){width=95%}
 
 
+#### TODO: add WY adjusted test
