@@ -28,7 +28,7 @@
 #' gauss_kern(0)
 gauss_kern <- function(x) {
   if (is.vector(x)) {
-    x <- matrix(x, nrow = 1)
+    x <- matrix(x, ncol = 1)
   }
   kernel_values <- apply(x, 1, function(row) {
     exp((-1 / 2) * sum(row^2))
@@ -55,19 +55,28 @@ gauss_kern <- function(x) {
 #' kern_h(0, 1) # Should return 1
 #' kern_h(c(-1, 0, 1), 0.5)
 kern_h <- function(x, h, kernel_fun = gauss_kern) {
-  kern(x / h) / h
+  kernel_fun(x / h) / h
 }
 
 kern_ih <- function(pt, qry, kernel_fun, h) {
-  kern_h(pt - qry, h = h, kernel_fun = kernel_fun)
+  if (is.vector(pt)) {
+    pt <- matrix(pt, ncol = 1)
+  }
+  if (!is.matrix(pt)) {
+    stop("pt must be a matrix or vector")
+  }
+  kern_h(pt - rep(qry, each = nrow(pt)), h = h, kernel_fun = kernel_fun)
 }
 
 # }}} k_h
 
 # {{{ lm_kernel_weights
 
-lm_kernel_weights <- function(form, data, bwidth, query) {
-  terms <- parse_terms(as.formula(form))
+lm_kernel_weights <- function(form, data, bwidth, query,
+                              kernel_fun = mixedcurve::gauss_kern) {
+  #' form <- y ~ K_h(x)
+  #' bwidth <- 0.1
+  terms <- mixedcurve::parse_terms(as.formula(form))
   response_term <- terms[terms$type == "response", ]$lhs
   kterm_lhs <- terms[terms$type == "kernel fixed effect", ]$lhs
   kterm_rhs <- terms[terms$type == "kernel fixed effect", ]$rhs
@@ -98,8 +107,8 @@ or K_h(x * y | grp)).")
   if (!all(dim_labels %in% colnames(data))) {
     stop("Some dimension labels in the kernel term are not found in the data.")
   }
-  str(data)
-  response_term
+  #' str(data)
+  #' response_term
   if (!is.na(kterm_rhs)) {
     dmat <- cbind(
       data[[response_term]],
@@ -131,12 +140,13 @@ or K_h(x * y | grp)).")
     colnames(dmat) <- c("y", "intercept")
   }
   dim_data <- do.call(cbind, lapply(dim_labels, function(label) data[[label]]))
-  weights <- sqrt(kern_h(sweep(dim_data, 2,
-                               query, FUN = "-"),
-                         bwidth))
-  weighted_design_matrix <- sweep(dmat, 1, weights, FUN = "*")
-  colnames(weighted_design_matrix) <- paste("w_", colnames(dmat), sep = "")
-  as.data.frame(weighted_design_matrix)
+  weights <- sqrt(mixedcurve::kern_ih(dim_data, query,
+                                      bwidth,
+                                      kernel_fun = kernel_fun))
+  weights
+  #' weighted_design_matrix <- sweep(dmat, 1, weights, FUN = "*")
+  #' colnames(weighted_design_matrix) <- paste("w_", colnames(dmat), sep = "")
+  #' as.data.frame(weighted_design_matrix)
 }
 
 # }}} lm_kernel_weights

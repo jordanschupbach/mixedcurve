@@ -1,4 +1,20 @@
 test_that(
+  "classify_terms",
+  {
+    cterms <- mixedcurve::classify_terms(
+      y ~ -1 + K_h(x1) + (1 | cluster) + (K_h(x1) | id) + x2
+    )
+    expect_equal(
+      cterms$type,
+      c(
+        "response", "fixed effect", "kernel fixed effect",
+        "random effect", "kernel random effect", "fixed effect"
+      )
+    )
+  }
+)
+
+test_that(
   "parse_kernfun_1d_0covariate",
   {
     form <- y ~ K_h(x1)
@@ -86,11 +102,11 @@ test_that(
       "grp"
     )
     expect_equal(
-      terms[terms$type == "random effect", ]$rhs,
+      terms[terms$type == "kernel random effect", ]$rhs,
       "cluster"
     )
     expect_equal(
-      terms[terms$type == "random effect", ]$lhs,
+      terms[terms$type == "kernel random effect", ]$lhs,
       "K_h(x1)"
     )
   }

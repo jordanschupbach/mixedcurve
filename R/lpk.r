@@ -17,8 +17,10 @@
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # }}} License
 
+
 # {{{ lpk
-#' Local polynomial Kernel regression
+
+#' Generalized Local polynomial Kernel regression query
 #'
 #' @param formula A formula object specifying the model to be fitted of
 #'                the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on
@@ -30,40 +32,36 @@
 #' @param data A data frame containing the variables in the formula.
 #' @param h A positive numeric value representing the bandwidth for the kernel.
 lpk_query <- function(formula,
-                      query,
-                      data,
-                      degree = 0,
-                      kernel = mixedcurve::gauss_kern,
-                      h) {
-  weighted_data <- mixedcurve::lm_kernel_weights(formula,
+                       query,
+                       data,
+                       degree = 0,
+                       kernel = mixedcurve::gauss_kern, h) {
+  lme_form <- as.formula(mixedcurve::kernel_to_lm_formula(formula))
+  w <- as.numeric(mixedcurve::lm_kernel_weights(
+    formula,
     data = data,
-    bwidth = h, query = query
+    bwidth = h,
+    query = query
+  ))
+  data$w <- w # NOTE: forces a copy of data?
+  lm1 <- lm(
+    lme_form,
+    data = data,
+    weights = w
   )
-  lm_fit <- lm(w_y ~ . - 1, data = weighted_data)
-  queries <- coef(lm_fit)[1]
-  print(length(coef(lm_fit))[1])
-  if (length(coef(lm_fit)) > 1) {
-    queries <- c(
-      queries,
-      sapply(
-        2:length(coef(lm_fit)),
-        function(i) coef(lm_fit)[1] + coef(lm_fit)[i]
-      )
-    )
-  }
   list(
     query = query,
-    weights = weighted_data,
-    coefs = coef(lm_fit),
-    queries = queries
+    coefs = coef(lm1)
   )
 }
+
+
 lpk <- function(formula,
                 queries,
                 data,
+                h,
                 degree = 0,
                 kernel = mixedcurve::gauss_kern,
-                h,
                 parallel = TRUE, cl = NULL) {
   if (is.matrix(queries)) {
     tqueries <- split(queries, seq_len(nrow(queries)))
@@ -114,18 +112,13 @@ lpk <- function(formula,
   class(lpk_mod) <- "lpkMod"
   lpk_mod
 }
-get_queries <- function(lpkmod) {
-  if (class(lpkmod) == "lpkMod" || class(lpkmod) == "glpkMod") {
-    do.call(rbind, lapply(lpkmod$queries, function(x) x$queries))
-  } else {
-    stop("Object is not of class lpkMod")
-  }
-}
-# }}} lpk
+
+# }}} glpk
+
+
+
 
 # {{{ glpk
-
-# TODO: redo docs here
 
 #' Generalized Local polynomial Kernel regression query
 #'
@@ -144,38 +137,23 @@ glpk_query <- function(formula,
                        degree = 0,
                        kernel = mixedcurve::gauss_kern,
                        h, family = "gaussian") {
-  #' terms <- parse_terms(formula)
-  weighted_data <- lm_kernel_weights(formula,
+  lme_form <- as.formula(mixedcurve::kernel_to_lm_formula(formula))
+  w <- as.numeric(mixedcurve::lm_kernel_weights(
+    formula,
     data = data,
-    bwidth = h, query = query
+    bwidth = h,
+    query = query
+  ))
+  data$w <- w # NOTE: forces a copy?
+  lm1 <- glm(
+    lme_form,
+    data = data,
+    family = family,
+    weights = w
   )
-  lm_fit <- glm(w_y ~ . - 1, data = weighted_data, family = family)
-  if (family == "gaussian") {
-    #' queries <- c(
-    #'   coef(lm_fit)[1],
-    #'   sapply(2:length(coef(lm_fit)),
-    #'          function(i) coef(lm_fit)[1] + coef(lm_fit)[i])
-    #' )
-  } else if (family == "poisson") {
-    #' queries <- exp(c(
-    #'   coef(lm_fit)[1],
-    #'   sapply(2:length(coef(lm_fit)),
-    #'          function(i) coef(lm_fit)[1] + coef(lm_fit)[i])
-    #' ))
-  } else {
-    stop("Currently only 'gaussian' and 'poisson' families are supported")
-  }
   list(
     query = query,
-    weights = weighted_data, coefs = coef(lm_fit),
-    coefs = coef(lm_fit),
-    queries = c(
-      coef(lm_fit)[1],
-      sapply(
-        2:length(coef(lm_fit)),
-        function(i) coef(lm_fit)[1] + coef(lm_fit)[i]
-      )
-    )
+    coefs = coef(lm1)
   )
 }
 
@@ -240,7 +218,6 @@ glpk <- function(formula,
   class(lpk_mod) <- "lpkMod"
   lpk_mod
 }
-
 
 # }}} glpk
 
@@ -314,6 +291,116 @@ glpkme <- function(formula,
                    family = "poisson",
                    parallel = FALSE) { }
 # }}} lpkme
+
+
+
+#' # {{{ oldlpk
+#' #' Local polynomial Kernel regression
+#' #'
+#' #' @param formula A formula object specifying the model to be fitted of
+#' #'                the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on
+#' #'                whether a grouping variable is present.
+#' #' @param degree An integer specifying the degree of the local polynomial
+#' #'               (default is 0 for Nadaraya-Watson estimator).
+#' #' @param queries A numeric vector of points at which to evaluate the fitted
+#' #'                values.
+#' #' @param data A data frame containing the variables in the formula.
+#' #' @param h A positive numeric value representing the bandwidth for the kernel.
+#' lpk_query <- function(formula,
+#'                       query,
+#'                       data,
+#'                       degree = 0,
+#'                       kernel = mixedcurve::gauss_kern,
+#'                       h) {
+#'   weighted_data <- mixedcurve::lm_kernel_weights(formula,
+#'     data = data,
+#'     bwidth = h, query = query
+#'   )
+#'   lm_fit <- lm(w_y ~ . - 1, data = weighted_data)
+#'   queries <- coef(lm_fit)[1]
+#'   print(length(coef(lm_fit))[1])
+#'   if (length(coef(lm_fit)) > 1) {
+#'     queries <- c(
+#'       queries,
+#'       sapply(
+#'         2:length(coef(lm_fit)),
+#'         function(i) coef(lm_fit)[1] + coef(lm_fit)[i]
+#'       )
+#'     )
+#'   }
+#'   list(
+#'     query = query,
+#'     weights = weighted_data,
+#'     coefs = coef(lm_fit),
+#'     queries = queries
+#'   )
+#' }
+#' lpk <- function(formula,
+#'                 queries,
+#'                 data,
+#'                 degree = 0,
+#'                 kernel = mixedcurve::gauss_kern,
+#'                 h,
+#'                 parallel = TRUE, cl = NULL) {
+#'   if (is.matrix(queries)) {
+#'     tqueries <- split(queries, seq_len(nrow(queries)))
+#'   } else if (is.vector(queries)) {
+#'     tqueries <- as.list(queries)
+#'   } else {
+#'     stop("tqueries must be a matrix or a vector")
+#'   }
+#'   #' datas <- data
+#'   if (parallel) {
+#'     if (is.null(cl)) {
+#'       cl <- parallel::makeCluster(parallel::detectCores() - 1, type = "PSOCK")
+#'       parallel::clusterEvalQ(cl, {
+#'         library(mixedcurve)
+#'       })
+#'       res <- parallel::parLapply(tqueries, function(q, datas) {
+#'         lpk_query(formula,
+#'           query = q,
+#'           data = datas,
+#'           degree = degree,
+#'           kernel = kernel,
+#'           h = h
+#'         )
+#'       }, cl = cl, datas = data)
+#'       on.exit(parallel::stopCluster(cl))
+#'     }
+#'     res <- parallel::parLapply(tqueries, function(q) {
+#'       lpk_query(formula,
+#'         query = q,
+#'         data = data,
+#'         degree = degree,
+#'         kernel = kernel,
+#'         h = h
+#'       )
+#'     }, cl = cl)
+#'   } else {
+#'     res <- lapply(tqueries, function(q) {
+#'       lpk_query(formula,
+#'         query = q,
+#'         data = data,
+#'         degree = degree,
+#'         kernel = kernel,
+#'         h = h
+#'       )
+#'     })
+#'   }
+#'   lpk_mod <- list(queries = res, formula = formula, bandwidth = h)
+#'   class(lpk_mod) <- "lpkMod"
+#'   lpk_mod
+#' }
+#' get_queries <- function(lpkmod) {
+#'   if (class(lpkmod) == "lpkMod" || class(lpkmod) == "glpkMod") {
+#'     do.call(rbind, lapply(lpkmod$queries, function(x) x$queries))
+#'   } else {
+#'     stop("Object is not of class lpkMod")
+#'   }
+#' }
+#' # }}} lpk
+
+
 
 # Local Variables:
 # eval: (origami-mode t)

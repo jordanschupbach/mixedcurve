@@ -9,6 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+<!-- {{{ Setup -->
 ```{r setup}
 #| include: false
 knitr::opts_chunk$set(
@@ -16,6 +17,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
+<!-- }}} Setup -->
 
 ## Introduction
 This vignette demonstrates how to use the `mixedcurve` package to fit a
@@ -25,6 +27,7 @@ Nadaraya-Watson kernel regression model to one-dimensional data.
 Let's start by simulating some data according to a modified version of the
 doppler function to fit a Nadaraya-Watson curve kernel regression model to.
 
+<!-- {{{ Simulate Data -->
 ```{r, fig.width=7, fig.height=5, dpi=600, out.width="700px", message=FALSE, warning=FALSE}
 library(mixedcurve)
 
@@ -43,13 +46,17 @@ plot(x, y, main = "Modified Doppler function data",
 invisible(dev.off())
 
 ```
+<!-- }}} Simulate Data -->
 
 ![Modified Doppler function data](./doppler_data.png){width=95%}
 
 To fit the Nadaraya-Watson kernel regression model, we can use the `lpk`
 function from the `mixedcurve` package. We will specify the bandwidth, kernel
-type, and degree.
+type, and degree. The formula will be `y ~ K_h(x)`, where `K_h(x)` indicates
+that we want to use a kernel smoother on the `x` variable with bandwidth `h`.
  
+<!-- {{{ Fit NW model -->
+
 ```{r, message=FALSE, warning=FALSE}
 # Fit Nadaraya-Watson kernel regression model (in parallel)
 
@@ -64,10 +71,10 @@ nw_fit <- mixedcurve::lpk(y ~ K_h(x), h = bandwidth,
                           data = df1, queries = queries,
                           parallel = TRUE, cl = cl)
 parallel::stopCluster(cl)
-fits <- mixedcurve::get_queries(nw_fit)
+fits <- as.numeric(unlist(lapply(nw_fit[[1]], function (fit) fit$coefs)))
 
 
-
+#png("./vignettes/nw_1d/doppler_data_fit.png", width = 4800, height = 4800, res = 600)
 png("doppler_data_fit.png", width = 4800, height = 4800, res = 600)
 mixedcurve::dark_mode()
 plot(x, y, main = "Nadaraya-Watson Kernel Regression of Doppler data",
@@ -79,5 +86,7 @@ invisible(dev.off())
 
 #
 ```
+
+<!-- }}} Fit NW model -->
 
 ![Modified Doppler function data with Nadaraya-Watson fit](./doppler_data_fit.png){width=95%}
