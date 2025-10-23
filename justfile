@@ -7,7 +7,7 @@ build-all-vignettes:
         echo "Checking for file: ./vignettes/$dir_name/$dir_name.rmd"; \
         if [ -f "./vignettes/$dir_name/$dir_name.rmd" ]; then \
             echo "Found $dir_name.rmd in: $dir"; \
-            Rscript -e "rmarkdown::render(file.path('./vignettes/$dir_name', '$dir_name.rmd'), output_format = list('html_document', 'md_document'), output_file = '$dir_name.html', output_dir = './vignettes/$dir_name')"; \
+            Rscript -e "rmarkdown::render(file.path('./vignettes/$dir_name', '$dir_name.rmd'), output_format = 'all', output_file = '$dir_name.html', output_dir = './vignettes/$dir_name')"; \
         else \
             echo "$dir_name.rmd not found in: $dir"; \
         fi; \

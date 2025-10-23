@@ -1,14 +1,15 @@
 ---
-title: "Generalized Nadaraya-Watson (1d) Kernel Regression"
+title: "Generalized Nadaraya-Watson (2d) Kernel Regression W Covariate"
 author: "Jordan Schupbach"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{My Vignette}
+  %\VignetteIndexEntry{Generalized Nadaraya-Watson (2d) Kernel Regression W Covariate}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
+<!-- {{{ Setup -->
 ```{r setup}
 #| include: false
 knitr::opts_chunk$set(
@@ -16,6 +17,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
+<!-- }}} Setup -->
 
 ## Introduction
 This vignette demonstrates how to use the `mixedcurve` package to fit a
@@ -27,6 +29,7 @@ Let's start by simulating some 2D spatial Poisson data with group effects to
 fit a generalized Nadaraya-Watson kernel regression model to. We will make some
 modifications to the Cuevas et al. M3 curve for this purpose.
 
+<!-- {{{ Simulate data -->
 ```{r}
 
 set.seed(123)
@@ -35,7 +38,7 @@ tf <- function(t, i) {
   # Define the rate function for Poisson data at time t
     exp(3 * exp(mixedcurve::m3(t, i)))
 }
-n <- 4000
+n <- 3000
 set.seed(123)
 fundata1 <- mixedcurve::gen_fanova_data(
   f = tf,
@@ -51,7 +54,8 @@ fundata1 <- mixedcurve::gen_fanova_data(
 df1 <- fundata1$df
 color_values <- cut(df1$y, breaks = 100, labels = FALSE)
 color_scale <- viridis::viridis(100)
-png("./vignettes/gnw_2d_w_covariate/gnw_2d_poisson_data.png", width = 3 * 4800, height = 4800, res = 600)
+# png("./vignettes/gnw_2d_w_covariate/gnw_2d_poisson_data.png", width = 3 * 4800, height = 4800, res = 600)
+png("./gnw_2d_poisson_data.png", width = 3 * 4800, height = 4800, res = 600)
 mixedcurve::dark_mode()
 par(mfrow = c(1, 3))
 plot(df1$x1[df1$grp == 1], df1$x2[df1$grp == 1],
@@ -73,7 +77,7 @@ invisible(dev.off())
 
 #
 ```
-
+<!-- }}} Simulate data -->
 
 ![Functional Poisson data](./gnw_2d_poisson_data.png){width=95%}
 
@@ -84,6 +88,7 @@ indicate that we want to fit a generalized local polynomial kernel model across
 domain `x * y`, i.e. the two-dimensional plane, conditional on group `grp` as a
 covariate.
 
+<!-- {{{ Fit GNW model -->
 
 ```{r, message=FALSE, warning=FALSE}
 mixedcurve::kernel_to_lm_formula(y ~ K_h(x1 * x2 | grp))
@@ -111,7 +116,8 @@ qscoefs <- cbind( qs[, 1], qs[, 1] + qs[, 2], qs[, 1] + qs[, 3])
 all_values <- c(as.vector(exp(qscoefs)), tf(qseq, 1), tf(qseq, 2), tf(qseq, 3))
 breaks <- seq(min(all_values), max(all_values), length.out = 101)
 colors <- viridis::viridis(100)
-png("./vignettes/gnw_2d_w_covariate/gnw_2d_poisson_fit.png", width = 3 * 4800, height = 2 * 4800, res = 600)
+# png("./vignettes/gnw_2d_w_covariate/gnw_2d_poisson_fit.png", width = 3 * 4800, height = 2 * 4800, res = 600)
+png("gnw_2d_poisson_fit.png", width = 3 * 4800, height = 2 * 4800, res = 600)
 par(mfrow = c(2, 3))
 mixedcurve::dark_mode()
 image(matrix(tf(qseq, 1), nxy, nxy),
@@ -142,6 +148,7 @@ dev.off()
 
 #
 ```
+<!-- }}} Fit GNW model -->
 
 ![Functional Poisson data](./gnw_2d_poisson_fit.png){width=95%}
 

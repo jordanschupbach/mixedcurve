@@ -1,10 +1,10 @@
 ---
-title: "Generalized Nadaraya-Watson (1d) Kernel Regression"
+title: "Generalized Nadaraya-Watson (1d) Kernel Regression W Covariate"
 author: "Jordan Schupbach"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{My Vignette}
+  %\VignetteIndexEntry{Generalized Nadaraya-Watson (1d) Kernel Regression W Covariate}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -26,6 +26,8 @@ data.
 Let's start by simulating some functional Poisson data with group effects to
 fit a generalized Nadaraya-Watson kernel regression model to. We will make some
 modifications to the Cuevas et al. m3 curve for this purpose.
+
+<!-- {{{ Simulate data -->
 
 ```{R}
 
@@ -50,7 +52,8 @@ fundata1 <- mixedcurve::gen_fanova_data(
 )
 df1 <- fundata1$df
 # 3. Plot the data
-png("./vignettes/gnw_1d_w_covariate/gnw_1d_poisson_data.png", width = 4800, height = 4800, res = 600)
+# png("./vignettes/gnw_1d_w_covariate/gnw_1d_poisson_data.png", width = 4800, height = 4800, res = 600)
+png("gnw_1d_poisson_data.png", width = 4800, height = 4800, res = 600)
 mixedcurve::dark_mode()
 plot(df1$x1, df1$y,
   col = adjustcolor(df1$grp, 0.1),
@@ -71,6 +74,8 @@ invisible(dev.off())
 #
 ```
 
+<!-- }}} Simulate data -->
+
 ![Functional Poisson data](./gnw_1d_poisson_data.png){width=95%}
 
 Now, we can fit the generalized Nadaraya-Watson kernel regression model using
@@ -78,11 +83,13 @@ the `lpk` function from the `mixedcurve` package. We will specify the
 bandwidth, kernel type, degree, and use the formula `y ~ K_h(x1 | grp)` to
 indicate that we want to fit separate curves for each group.
 
+<!-- {{{ Fit GNW model -->
 ```{r, message=FALSE, warning=FALSE}
 # 4. Fit GNW kernel regression model (in parallel)
 
+qseq <- matrix(seq(0.0, 1.0, length.out = 200), ncol = 1)
 glpk1 <- mixedcurve::glpk(y ~ K_h(x1 | grp),
-  queries = seq(0.0, 1.0, length.out = 200),
+  queries = qseq,
   data = df1,
   degree = 0,
   kernel = mixedcurve::gauss_kern,
@@ -94,7 +101,8 @@ coefmat <- matrix(
   unlist(lapply(glpk1[[1]], function(elmt) { elmt$coef })), ncol = 3, byrow = TRUE
 )
 # 5. Plot the results
-png("./vignettes/gnw_1d_w_covariate/gnw_1d_poisson_fit.png", width = 4800, height = 4800, res = 600)
+# png("./vignettes/gnw_1d_w_covariate/gnw_1d_poisson_fit.png", width = 4800, height = 4800, res = 600)
+png("gnw_1d_poisson_fit.png", width = 4800, height = 4800, res = 600)
 mixedcurve::dark_mode()
 plot(df1$x1, df1$y,
   col = adjustcolor(df1$grp, 0.1),
@@ -119,5 +127,7 @@ invisible(dev.off())
 
 #
 ```
+
+<!-- }}} Fit GNW model -->
 
 ![Functional Poisson data with GNW fit](./gnw_1d_poisson_fit.png){width=95%}

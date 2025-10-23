@@ -4,7 +4,7 @@ author: "Jordan Schupbach"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{My Vignette}
+  %\VignetteIndexEntry{Nadaraya-Watson (2d) Kernel Regression}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -94,7 +94,7 @@ image(matrix(mixedcurve::m2(qseq, 1), nq, nq),
 )
 image(matrix(fits, nq, nq),
   col = colors, breaks = breaks,
-  axes = FALSE, main = paste("Nadaraya-Watson Fits Cuevas M2 Group", i)
+  axes = FALSE, main = paste("Nadaraya-Watson Fit Cuevas M2 (Group 1)")
 )
 invisible(dev.off())
 
