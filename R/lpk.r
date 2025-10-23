@@ -17,7 +17,6 @@
 #     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # }}} License
 
-
 # {{{ lpk
 
 #' Generalized Local polynomial Kernel regression query
@@ -226,47 +225,89 @@ lpkme_query <- function(formula,
                         degree = 0,
                         kernel = mixedcurve::gauss_kern,
                         h) {
-  weighted_data <- lm_kernel_weights(formula,
+  kernel <- mixedcurve::gauss_kern
+  lme4_form <- as.formula(mixedcurve::kernel_to_lme4_formula(formula))
+  parse_terms <- mixedcurve::parse_terms(as.formula(formula))
+  domain_cols <- parse_terms[parse_terms$type == "kernel fixed effect",]$lhs
+  domain_cols <- unlist(strsplit(gsub("\\s+", "", domain_cols), "\\*"))
+  domain_cols <- domain_cols[domain_cols != ""]
+  weights <- mixedcurve::kern_ih(pt = as.matrix(data[,domain_cols, drop = FALSE]),
+                                 qry = query, h = h, kernel_fun = kernel)
+  data$w <- weights
+  lm_fit <- lme4::lmer(
+    lme4_form,
     data = data,
-    bwidth = h, query = query
-  )
-  lm_fit <- lme4::lmer(w_y ~ . - 1 + (w_intercept | ind / rep),
-    data = weighted_data
+    weights = w
   )
   list(
     query = query,
-    weights = weighted_data, coefs = coef(lm_fit),
-    queries = c(
-      coef(lm_fit)[1],
-      coef(lm_fit)[1] + coef(lm_fit)[2:length(coef(lm_fit))]
-    )
+    coefs = coef(lm_fit),
+    fixefs = lme4::fixef(lm_fit),
+    ranefs = lme4::ranef(lm_fit)
   )
 }
 
-
-
-#' Local polynomial Kernel Mixed-Effect regression
-#'
-#' @param formula A formula object specifying the model to be fitted of
-#'                the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on
-#'                whether a grouping variable is present.
-#' @param degree An integer specifying the degree of the local polynomial
-#'               (default is 0 for Nadaraya-Watson estimator).
-#' @param queries A numeric vector of points at which to evaluate
-#'                the fitted values.
-#' @param data A data frame containing the variables in the formula.
-#' @param h A positive numeric value representing the bandwidth for the kernel.
 lpkme <- function(formula,
-                  queries,
-                  data,
-                  h,
-                  degree = 0,
-                  kernel = mixedcurve::gauss_kern,
-                  parallel = FALSE) {
-
+                 queries,
+                 data,
+                 h,
+                 degree = 0,
+                 kernel = mixedcurve::gauss_kern,
+                 parallel = TRUE, cl = NULL) {
+  # TODO: enforce that formula has random effect kernel terms
+  if (is.matrix(queries)) {
+    tqueries <- split(queries, seq_len(nrow(queries)))
+  } else if (is.vector(queries)) {
+    tqueries <- as.list(queries)
+  } else {
+    stop("tqueries must be a matrix or a vector")
+  }
+  #' datas <- data
+  if (parallel) {
+    if (is.null(cl)) {
+      cl <- parallel::makeCluster(parallel::detectCores() - 1, type = "PSOCK")
+      parallel::clusterEvalQ(cl, {
+        library(mixedcurve)
+      })
+      res <- parallel::parLapply(tqueries, function(q, datas) {
+        lpkme_query(
+          formula = formula,
+          query = q,
+          data = datas,
+          degree = degree,
+          kernel = kernel,
+          h = h
+        )
+      }, cl = cl, datas = data)
+      on.exit(parallel::stopCluster(cl))
+    }
+    res <- parallel::parLapply(tqueries, function(q) {
+      lpkme_query(
+        formula = formula,
+        query = q,
+        data = data,
+        degree = degree,
+        kernel = kernel,
+        h = h
+      )
+    }, cl = cl)
+  } else {
+    res <- lapply(tqueries, function(q) {
+      lpkme_query(
+        formula = formula,
+        query = q,
+        data = data,
+        degree = degree,
+        kernel = kernel,
+        h = h
+      )
+    })
+  }
+  lpkme_mod <- list(queries = res, formula = formula, bandwidth = h)
+  class(lpkme_mod) <- "lpkmeMod"
+  lpkme_mod
 }
 # }}} lpkme
-
 
 # {{{ glpkme
 
@@ -369,8 +410,6 @@ glpkme <- function(formula,
   glpkme_mod
 }
 # }}} glpkme
-
-
 
 #' # {{{ oldlpk
 #' #' Local polynomial Kernel regression

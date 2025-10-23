@@ -1,10 +1,10 @@
 ---
-title: "Nadaraya-Watson (1d) Mixed Curve"
+title: "Nadaraya-Watson (1d) Mixed Curve Regression"
 author: "Jordan Schupbach"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Nadaraya-Watson (1d) Mixed Curve}
+  %\VignetteIndexEntry{Nadaraya-Watson (1d) Mixed Curve Regression}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -21,74 +21,108 @@ knitr::opts_chunk$set(
 
 ## Introduction
 This vignette demonstrates how to use the `mixedcurve` package to fit a
-Nadaraya-Watson mixed-curve regression model to one-dimensional data.
+generalized Nadaraya-Watson kernel regression model to one-dimensional Poisson
+data.
 
 ## Example Usage
-Let's start by simulating some data according to a modified version of the
-doppler function to fit a Nadaraya-Watson mixed-curve regression model to.
+Let's start by simulating some functional Poisson data with group effects to
+fit a generalized Nadaraya-Watson kernel regression model to. We will make some
+modifications to the Cuevas et al. M3 curve for this purpose.
 
-<!-- {{{ Simulate Data -->
-```{r, fig.width=7, fig.height=5, dpi=600, out.width="700px", message=FALSE, warning=FALSE}
-library(mixedcurve)
+<!-- {{{ Simulate data -->
 
-# Simulate
+```{R}
+
+library(Matrix)
+library(lme4)
 set.seed(123)
-mdoppler <- function(x) {
-  sin(20 / (x + 0.25))
-}
-n <- 10000
-x <- runif(n, 0, 1)
-y <- mdoppler(x) + rnorm(n, sd = 0.1)
-png("doppler_data.png", width = 4800, height = 4800, res = 600)
+n <- 300
+nind <- 15
+x <- runif(n * nind)
+xmat <- cbind(rep(1, n * nind), x, x^2)
+betas_true <- c(2.323, 1.73, -1.4)
+bs_true <- as.numeric(t(as.matrix(cbind(rnorm(nind, 0, 0.81),
+                                        rnorm(nind, 0, 0.08),
+                                        rnorm(nind, 0, 0.03)))))
+id <- rep(1:nind, each = n)
+z_blocks <- lapply(seq_len(ncol(xmat)),
+                   function(j) lapply(split(xmat[, j], id), as.matrix))
+z_blocks <- lapply(seq_along(z_blocks[[1]]), function(i) {
+  do.call(cbind, lapply(z_blocks, function(block) block[[i]]))
+})
+zmat <- bdiag(z_blocks)
+eta_true <- as.vector(xmat %*% betas_true + zmat %*% bs_true)
+y <- eta_true + rnorm(n * nind, 0, 0.3)
+df1 <- data.frame(y = y, x = x, id = as.factor(id))
+# png("vignettes/mc_1d/mc_1d_data.png", width = 4800, height = 4800, res = 600)
+png("mc_1d_data.png", width = 4800, height = 4800, res = 600)
 mixedcurve::dark_mode()
-plot(x, y, main = "Modified Doppler function data",
-     pch = 20, col = adjustcolor("yellow", 0.2))
-invisible(dev.off())
-
-```
-<!-- }}} Simulate Data -->
-
-![Modified Doppler function data](./doppler_data.png){width=95%}
-
-To fit the Nadaraya-Watson kernel regression model, we can use the `lpk`
-function from the `mixedcurve` package. We will specify the bandwidth, kernel
-type, and degree. The formula will be `y ~ K_h(x)`, where `K_h(x)` indicates
-that we want to use a kernel smoother on the `x` variable with bandwidth `h`.
- 
-<!-- {{{ Fit NW model -->
-
-```{r, message=FALSE, warning=FALSE}
-# Fit Nadaraya-Watson kernel regression model (in parallel)
-
-df1 <- data.frame(x = x, y = y)
-bandwidth <- 0.002
-queries <- seq(0, 1, length.out = 1000)
-cl = parallel::makeCluster(parallel::detectCores() - 1)
-invisible(parallel::clusterEvalQ(cl, library(mixedcurve)))
-parallel::clusterExport(cl, varlist = c("df1", "bandwidth", "queries"))
-nw_fit <- mixedcurve::lpk(y ~ K_h(x), h = bandwidth,
-                          kernel = mixedcurve::gauss_kern, degree = 0,
-                          data = df1, queries = queries,
-                          parallel = TRUE, cl = cl)
-parallel::stopCluster(cl)
-fits <- as.numeric(unlist(lapply(nw_fit[[1]], function (fit) fit$coefs)))
-
-
-#png("./vignettes/nw_1d/doppler_data_fit.png", width = 4800, height = 4800, res = 600)
-png("doppler_data_fit.png", width = 4800, height = 4800, res = 600)
-mixedcurve::dark_mode()
-plot(x, y, main = "Nadaraya-Watson Kernel Regression of Doppler data",
-     pch = 20, col = adjustcolor("yellow", 0.2), cex = 1.0)
-lines(queries, fits, col = adjustcolor("red", 1.0), lwd = 2)
-legend("topright", legend = c("Fit", "Raw Data"),
-lty = c(1, NA), pch = c(NA, 20), col = c("red", adjustcolor("yellow", 0.5)), bty = "n")
+plot(x, y, col = adjustcolor(id, 0.2), pch = 20,
+  main = "Simulated Quadratic Functional Data",
+)
+points(x, eta_true, col = adjustcolor(id, 1.0), pch = 20)
 invisible(dev.off())
 
 #
 ```
 
-<!-- }}} Fit NW model -->
+<!-- }}} Simulate data -->
 
-![Modified Doppler function data with Nadaraya-Watson fit](./doppler_data_fit.png){width=95%}
+![Functional Poisson data](./mc_1d_data.png){width=95%}
+
+Now, we can fit the generalized Nadaraya-Watson kernel regression model using
+the `lpk` function from the `mixedcurve` package. We will specify the
+bandwidth, kernel type, degree, and use the formula `y ~ K_h(x)` to indicate
+that we want to fit a generalized local polynomial kernel model across domain
+`x`.
+
+<!-- {{{ Fit GNW model -->
+
+```{r, message=FALSE, warning=FALSE}
+
+# 4. Fit GNW kernel regression model (in parallel)
+qseq <- seq(0.0, 1.0, length.out = 200)
+lpk1 <- mixedcurve::lpkme(y ~ K_h(x) + (K_h(x) | id),
+  queries = qseq,
+  data = df1,
+  degree = 0,
+  kernel = mixedcurve::gauss_kern,
+  h = 0.02,
+  parallel = TRUE
+)
+qrs <-do.call(rbind, lapply(lpk1[[1]], function(elmt) { as.numeric(unlist(elmt$coefs)) }))
+# 5. Plot the results
+# png("vignettes/mc_1d/mc_1d_fit.png", width = 4800, height = 4800, res = 600)
+png("mc_1d_fit.png", width = 4800, height = 4800, res = 600)
+mixedcurve::dark_mode()
+plot(df1$x, df1$y,
+  col = adjustcolor(df1$id, 0.2),
+  pch = 20, ylim = c(0, 5),
+  ylab = "y", xlab = "x",
+  main = "Quadratic Functional data with MC fit"
+)
+points(df1$x, eta_true, col = adjustcolor(df1$id, 1.00), cex = 0.5)
+for(i in 1:nind) {
+  lines(qseq, qrs[, i], col = adjustcolor(i, 0.50), lwd = 3)
+}
+legend("topright",
+  legend = c("True means", "Estimated means", "Raw Data"),
+  col = "white",
+  lty = c(NA, 1, NA),
+  pch = c(1, NA, 20),
+  lwd = 2
+)
+invisible(dev.off())
+
+#
+```
+
+<!-- }}} Fit GNW model -->
+
+![Functional Poisson data with GNW fit](./mc_1d_fit.png){width=95%}
+
 
 #### TODO: add WY adjusted test
+
+
+
