@@ -5,6 +5,7 @@ Version: 0.0.1
 Title: mixedcurve
 Author: Jordan Schupbach
 Maintainer: Jordan Schupbach <jordans1882@gmail.com>
+URL: https://www.github.com/jordanschupbach/mixedcurve
 License: GPL3
 Depends: R (>= 3.1.0), parallel, viridis, geoR, lme4
 Suggests: knitr, rmarkdown

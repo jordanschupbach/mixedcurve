@@ -2,8 +2,6 @@
 .direnv
 # tmp
 # inst/doc
-# /doc/
 /Meta/
-# /doc/
 *.tar.gz
-# /doc/
+/doc/

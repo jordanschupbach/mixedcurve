@@ -1,3 +1,23 @@
+# TARGET := "gmc_1d"
+# TARGET := "nw_2d_w_covariate"
+# TARGET := "nw_2d"
+TARGET := "nw_1d"
+
+open-vignette:
+    @xdg-open ./doc/{{TARGET}}.html &
+    clear
+
+open-all-vignettes:
+  for file in ./doc/*.html; do \
+      xdg-open "$file" & \
+  done
+  clear
+
+build-vignettes:
+    Rscript -e "devtools::build_vignettes('./')"
+    rm -rf ./doc/*.R
+    rm -rf ./doc/*.rmd
+
 devbuild:
     nix develop . --command bash -c "Rscript -e 'devtools::build_vignettes()'"
 
@@ -17,7 +37,7 @@ build-all-vignettes:
 
 
 
-build-vignette:
+build-single-vignette:
     Rscript -e "rmarkdown::render('./vignettes/nw_1d/nw_1d.rmd', output_format = 'all', output_file = 'nw_1d.html', output_dir = './vignettes/nw_1d/')"
 
 test-watch:
