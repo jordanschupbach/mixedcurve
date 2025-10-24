@@ -1,4 +1,5 @@
-
+devbuild:
+    nix develop . --command bash -c "Rscript -e 'devtools::build_vignettes()'"
 
 build-all-vignettes:
     for dir in ./vignettes/*/; do \
