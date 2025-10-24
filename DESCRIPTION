@@ -6,7 +6,7 @@ Title: mixedcurve
 Author: Jordan Schupbach
 Maintainer: Jordan Schupbach <jordans1882@gmail.com>
 License: GPL3
-Depends: R (>= 3.1.0), parallel, viridis, geoR, knitr, rmarkdown, colorout
+Depends: R (>= 3.1.0), parallel, viridis, geoR, knitr, rmarkdown
 Suggests:
 Encoding: UTF-8
 LazyData: true
