@@ -195,6 +195,49 @@ parse_args <- function(silent = FALSE) {
 
 # }}} parse_args
 
+
+#' List Available Vignettes
+#'
+#' This function lists the names of available vignettes
+#' in the 'mixedcurve' package by scanning the built_vignettes
+#' directory for HTML files.
+#'
+#' @return A character vector containing the names of available vignettes.
+#'
+#' @export
+#'
+#' @examples
+#' vignettes <- mixedcurve::list_vignettes()
+#' print(vignettes)
+list_vignettes <- function() {
+  vig_dir <- paste0(system.file("", package = "mixedcurve"), "built_vignettes/")
+  vig_files <- list.files(vig_dir, pattern = "\\.html$")
+  vig_names <- sub("\\.html$", "", vig_files)
+  return(vig_names)
+}
+
+
+#' Open a Vignette in the Default Web Browser
+#'
+#' This function opens a specified vignette from the 'mixedcurve'
+#' package in the default web browser. The vignette is identified
+#' by its name.
+#'
+#' @param vname A string representing the name of the vignette to be opened.
+#' @return None. The function is called for its side effects of
+#'               opening a web browser.
+#' @export
+#' @examples
+#' mixedcurve::open_vignette(list_vignettes()[1])
+#'
+open_vignette <- function(vname) {
+  vig_path <- paste0(system.file("", package = "mixedcurve"), "built_vignettes/", vname, ".html")
+  # TODO: handle other OS types
+  system(paste("xdg-open", shQuote(vig_path)))
+}
+
+
+
 # Local Variables:
 # eval: (origami-mode t)
 # End:

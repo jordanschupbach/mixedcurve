@@ -5,3 +5,5 @@
 /Meta/
 *.tar.gz
 /doc/
+./vignettes/*.png
+./vignettes/*.html
