@@ -31,11 +31,13 @@
 #' @param data A data frame containing the variables in the formula.
 #' @param h A positive numeric value representing the bandwidth for the kernel.
 lpk_query <- function(formula,
-                       query,
-                       data,
-                       degree = 0,
-                       kernel = mixedcurve::gauss_kern, h) {
+                      query,
+                      data,
+                      degree = 0,
+                      kernel = mixedcurve::gauss_kern, h) {
+
   lme_form <- as.formula(mixedcurve::kernel_to_lm_formula(formula))
+  lme_drop_form <- as.formula(mixedcurve::kernel_to_lm_drop_formula(formula))
   w <- as.numeric(mixedcurve::lm_kernel_weights(
     formula,
     data = data,
@@ -48,12 +50,18 @@ lpk_query <- function(formula,
     data = data,
     weights = w
   )
-  # pvals <- anova(lm1)$Pr
-  # pvals <- pvals[!is.na(pvals)]
+  lm2 <- lm(
+    lme_drop_form,
+    data = data,
+    weights = w
+  )
+  pvals <- anova(lm1, lm2)$Pr
+  pvals <- pvals[!is.na(pvals)]
+  # summary(lm1)$coefficients[,4]
   list(
     query = query,
     coefs = coef(lm1),
-    pvals = summary(lm1)$coefficients[,4]
+    pvals = pvals
   )
 }
 
@@ -138,6 +146,7 @@ glpk_query <- function(formula,
                        kernel = mixedcurve::gauss_kern,
                        h, family = "gaussian") {
   lme_form <- as.formula(mixedcurve::kernel_to_lm_formula(formula))
+  lme_drop_form <- as.formula(mixedcurve::kernel_to_lm_drop_formula(formula))
   w <- as.numeric(mixedcurve::lm_kernel_weights(
     formula,
     data = data,
@@ -151,13 +160,20 @@ glpk_query <- function(formula,
     family = family,
     weights = w
   )
-  # pvals <- anova(lm1)$Pr
-  # pvals <- pvals[!is.na(pvals)]
-  pvals <- summary(lm1)$coefficients[, 4]
+  lm2 <- glm(
+    lme_drop_form,
+    data = data,
+    family = family,
+    weights = w
+  )
+  #  summary(lm1)$coefficients[, 4]
+  pvals <- anova(lm1, lm2)$Pr
+  pvals <- pvals[!is.na(pvals)]
+  pvals <- pvals
   list(
-    query = query,
+    pvals = pvals,
     coefs = coef(lm1),
-    pvals = pvals
+    query = query
   )
 }
 
@@ -237,11 +253,13 @@ lpkme_query <- function(formula,
   lme4_form <- as.formula(mixedcurve::kernel_to_lme4_formula(formula))
   lme4_drop_form <- as.formula(mixedcurve::kern_to_lme4_drop_grp(formula))
   parse_terms <- mixedcurve::parse_terms(as.formula(formula))
-  domain_cols <- parse_terms[parse_terms$type == "kernel fixed effect",]$lhs
+  domain_cols <- parse_terms[parse_terms$type == "kernel fixed effect", ]$lhs
   domain_cols <- unlist(strsplit(gsub("\\s+", "", domain_cols), "\\*"))
   domain_cols <- domain_cols[domain_cols != ""]
-  weights <- mixedcurve::kern_ih(pt = as.matrix(data[,domain_cols, drop = FALSE]),
-                                 qry = query, h = h, kernel_fun = kernel)
+  weights <- mixedcurve::kern_ih(
+    pt = as.matrix(data[, domain_cols, drop = FALSE]),
+    qry = query, h = h, kernel_fun = kernel
+  )
   data$w <- weights
   lm_fit <- lme4::lmer(
     lme4_form,
@@ -264,12 +282,12 @@ lpkme_query <- function(formula,
 }
 
 lpkme <- function(formula,
-                 queries,
-                 data,
-                 h,
-                 degree = 0,
-                 kernel = mixedcurve::gauss_kern,
-                 parallel = TRUE, cl = NULL) {
+                  queries,
+                  data,
+                  h,
+                  degree = 0,
+                  kernel = mixedcurve::gauss_kern,
+                  parallel = TRUE, cl = NULL) {
   # TODO: enforce that formula has random effect kernel terms
   if (is.matrix(queries)) {
     tqueries <- split(queries, seq_len(nrow(queries)))
