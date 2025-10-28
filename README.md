@@ -6,12 +6,20 @@ Westfall-Young adjusted p-values.
 
 To install the package, use:
 
-```R
+```r
 devtools::install_github("jordanschupbach/mixedcurve")
 
 # Or to also build vignettes: 
-# NOTE: this may take a while to complete
+# NOTE: this may take a while to complete and is not recommended for most users.
 # devtools::install_github("jordanschupbach/mixedcurve", build_vignettes = TRUE)
 ```
 
-See the vignettes directory for detailed examples and usage instructions:
+To open a pre-built version of the package vignettes (see `./inst/built_vignettes/`), use:
+
+```r
+vignames <- mixedcurve::list_vignettes()
+
+# open the first vignette
+mixedcurve::open_vignette(vignames[1])
+```
+
