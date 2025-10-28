@@ -29,34 +29,30 @@ modifications to the Cuevas et al. m3 curve for this purpose.
 
 <!-- {{{ Simulate data -->
 
-```{R}
+```{r}
 
-# Simulate some quadratic Poisson data with group-specific curves
-set.seed(123)
 # 1. Define the true curves
 tf <- function(t, i) {
-  # Define the rate function for Poisson data at time t
-  exp(3 * exp(mixedcurve::m3(t, i)) - 2.7)
+  5 * mixedcurve::m3(t, i)
 }
 n <- 2000
 set.seed(123)
-fundata1 <- mixedcurve::gen_fanova_data(
-  f = tf,
-  bounds = c(0, 1),
-  n = 1, # Still sensitive to n?
-  nx = n,
-  balanced = TRUE,
+# 2. Simulate the data
+df1 <- mixedcurve::gen_hfanova_data(
+  f = function(t, i) {
+    5 * mixedcurve::m3(t, i)
+  },
   ngrp = 3,
-  sigma = 0.020,
-  family = "poisson"
+  n = c(500, 1), sigmas = c(0.3, 0), bounds = c(0, 1),
+  ndim = 1, px = NULL, pxargs = NULL,
+  family = "poisson", white_noise = TRUE
 )
-df1 <- fundata1$df
+
 # 3. Plot the data
-png("gnw_1d_poisson_data.png", width = 800, height = 800, res = 100)
 mixedcurve::dark_mode()
 plot(df1$x1, df1$y,
-  col = adjustcolor(df1$grp, 0.1),
-  pch = 20, ylim = c(0, 8.5),
+  col = adjustcolor(df1$cov, 0.1),
+  pch = 20, 
   ylab = "y", xlab = "x1",
   main = "Modified M3 Poisson Fit"
 )
@@ -65,12 +61,10 @@ lines(qsq, tf(qsq, 1), col = 1, lwd = 3)
 lines(qsq, tf(qsq, 2), col = 2, lwd = 3)
 lines(qsq, tf(qsq, 3), col = 3, lwd = 3)
 legend("topright",
-  legend = c("Group 1", "Group 2", "Group 3"), lty = 1, lwd = 3, 
-  col = c( adjustcolor(1, 1.00), adjustcolor(2, 1.00), adjustcolor(3, 1.00))
+  legend = c("Group 1", "Group 2", "Group 3"), lty = 1, lwd = 3,
+  col = c(adjustcolor(1, 1.00), adjustcolor(2, 1.00), adjustcolor(3, 1.00))
 )
-invisible(dev.off())
 
-#
 ```
 
 <!-- }}} Simulate data -->
@@ -84,22 +78,26 @@ indicate that we want to fit separate curves for each group.
 
 <!-- {{{ Fit GNW model -->
 ```{r, message=FALSE, warning=FALSE}
+
 # 4. Fit GNW kernel regression model (in parallel)
 qseq <- matrix(seq(0.0, 1.0, length.out = 200), ncol = 1)
-glpk1 <- mixedcurve::glpk(y ~ K_h(x1 | grp),
+bandwidth <- 0.015
+glpk1 <- mixedcurve::glpk(y ~ K_h(x1 | cov),
   queries = qseq,
   data = df1,
   degree = 0,
   kernel = mixedcurve::gauss_kern,
   family = "poisson",
-  h = 0.015,
+  h = bandwidth,
   parallel = TRUE
 )
+
+str(glpk1[[1]][[20]])
 coefmat <- matrix(
   unlist(lapply(glpk1[[1]], function(elmt) { elmt$coef })), ncol = 3, byrow = TRUE
 )
 # 5. Plot the results
-png("gnw_1d_poisson_fit.png", width = 800, height = 800, res = 100)
+# png("gnw_1d_poisson_fit.png", width = 800, height = 800, res = 100)
 mixedcurve::dark_mode()
 plot(df1$x1, df1$y,
   col = adjustcolor(df1$grp, 0.1),
@@ -107,9 +105,9 @@ plot(df1$x1, df1$y,
   ylab = "y", xlab = "x1",
   main = "Modified M3 Poisson data"
 )
-lines(qseq, tf(qseq, 1), col = 1)
-lines(qseq, tf(qseq, 2), col = 2)
-lines(qseq, tf(qseq, 3), col = 3)
+lines(qseq, exp(tf(qseq, 1)), col = 1)
+lines(qseq, exp(tf(qseq, 2)), col = 2)
+lines(qseq, exp(tf(qseq, 3)), col = 3)
 lines(qseq, exp(coefmat[, 1]), col = 1, lwd = 2, lty = 2)
 lines(qseq, exp(coefmat[, 1] + coefmat[, 2]), col = 2, lwd = 2, lty = 2)
 lines(qseq, exp(coefmat[, 1] + coefmat[, 3]), col = 3, lwd = 2, lty = 2)
@@ -120,7 +118,7 @@ legend("topright",
   pch = c(20, 20, 20, NA, NA),
   lwd = 2
 )
-invisible(dev.off())
+# invisible(dev.off())
 
 #
 ```
@@ -130,4 +128,53 @@ invisible(dev.off())
 ![Functional Poisson data with GNW fit](./gnw_1d_poisson_fit.png){width=95%}
 
 
-#### TODO: add WY adjusted test
+## Westfall-Young adjusted test
+
+<!-- {{{ WY adjusted p-values  -->
+```{r, fig.filename="m2_wy.png", fig.width=7, fig.height=10,  message=FALSE, warning=FALSE}
+
+str(glpk1[[1]]$pvals)
+cl <- parallel::makeCluster(parallel::detectCores() - 1)
+invisible(parallel::clusterEvalQ(cl, library(mixedcurve)))
+parallel::clusterExport(cl, varlist = c("df1", "bandwidth", "queries"))
+wy_pvals <- mixedcurve::wy_full(
+  dataf = df1, xseq = qseq, nperm = 100,
+  gen_pvals_fun = function(data, xseq) {
+    lpk_res <- mixedcurve::lpk(
+      y ~ K_h(x1 | cov), queries = xseq, data = data, degree = 0,
+      kernel = mixedcurve::gauss_kern,
+      h = bandwidth, parallel = FALSE
+    )
+    as.numeric(do.call(cbind, lapply(lpk_res[[1]], function(elmt) {
+      elmt$pvals
+    })))
+  },
+  gen_perm_fun = function(data) {
+    data$cov <- sample(data$cov, replace = FALSE)
+    data
+  },
+  cl = cl
+)
+parallel::stopCluster(cl)
+
+par(mfrow = c(2, 1))
+mixedcurve::dark_mode()
+plot(df1$x1, df1$y, main = "Nadaraya-Watson Kernel Regression of M2 data",
+     pch = 20, col = adjustcolor(df1$grp, 0.6), cex = 1.0,
+     xlab = "x", ylab = "y")
+lines(queries, exp(fits[, 1]), col = adjustcolor(1, 1.0), lwd = 2)
+legend("topright", legend = c("Fit Group 1", "Raw Data"),
+       lty = c(1, NA), pch = c(NA, 20),
+       col = c(adjustcolor(1, 1.0), adjustcolor("white", 0.5)), bty = "n")
+plot_pval_regions(queries, wy_pvals, pthresh = 0.05)
+plot(queries, wy_pvals, type = "l",
+  main = "Westfall-Young adjusted p-values",
+  xlab = "x", ylab = "W-Y Adjusted p-value",
+  ylim = c(0, 1)
+)
+abline(h = 0.05, col = "red", lty = 2)
+plot_pval_regions(queries, wy_pvals, pthresh = 0.05)
+print(paste0("WY-Adjusted p-value: ", min(wy_pvals)))
+```
+
+<!-- }}} WY adjusted p-values  -->

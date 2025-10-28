@@ -30,3 +30,29 @@ gen_square_layout <- function(ncurves) {
   layout_matrix <- matrix(1:ncurves, nrow = nrows, ncol = ncols, byrow = TRUE)
   layout_matrix
 }
+
+
+plot_pval_regions <- function(queries, wy_pvals,
+                              pthresh = 0.05, ylims = par("usr")[3:4]) {
+  in_region <- which(wy_pvals < pthresh)
+  if (length(in_region) > 0) {
+    # Get contiguous regions
+    regions <- split(in_region, cumsum(c(1, diff(in_region) != 1)))
+    for (region in regions) {
+      if (length(region) > 0) {
+        x_coords <- c(
+          queries[region[1]] - diff(queries)[1] / 2,
+          queries[region][-length(region)],
+          queries[tail(region, 1)] + diff(queries)[1] / 2,
+          queries[tail(region, 1)] + diff(queries)[1] / 2,
+          queries[region[1]] - diff(queries)[1] / 2
+        )
+        y_coords <- c(
+          ylims[1], rep(ylims[1], length(region)),
+          ylims[2], ylims[2]
+        )
+        polygon(x_coords, y_coords, col = rgb(0, 0, 1, 0.2), border = NA)
+      }
+    }
+  }
+}

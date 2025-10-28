@@ -1,0 +1,222 @@
+---
+title: "Nadaraya-Watson (1d) Hierarchical Mixed Curve Regression"
+author: "Jordan Schupbach"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Nadaraya-Watson (1d) Hierarchical Mixed Curve Regression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<!-- {{{ Setup -->
+
+```{r setup}
+#| include: false
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+<!-- }}} Setup -->
+
+## Introduction
+
+This vignette demonstrates how to use the `mixedcurve` package to fit a
+Nadaraya-Watson Hierarchical Mixed Curve model to one-dimensional hierarchical
+curve data.
+
+## Example Usage
+
+Let's start by simulating some hierarchical functional data with group random
+effects to fit a Nadaraya-Watson hierarchical kernel regression model to. We
+will use the Cuevas et al. M3 curve for this purpose.
+
+<!-- {{{ Simulate data -->
+
+```{r}
+
+set.seed(300)
+ni <- 5
+nj <- 10
+nk <- 100
+ndim <- 1
+bounds <- lapply(seq_len(ndim), function(i) c(0, 1))
+df1 <- mixedcurve::gen_hfanova_data(
+  f = mixedcurve::m3,
+  n = c(nk, nj, ni),
+  ndim = ndim,
+  sigmas = c(0.001, 0.02, 0.1),
+  px = runif, 
+  pxargs = lapply(1:ndim, function(i) list(min = 0, max = 1))
+)
+color_values <- cut(df1$y, breaks = 100, labels = FALSE)
+colors <- viridis::viridis(100)
+png("hmc_1d_data.png", width = 800, height = 800, res = 100)
+mixedcurve::dark_mode()
+plot(df1$x1, df1$y, col = df1$grp2, pch = 20,
+     main = "Simulated Hierarchical Functional Data",
+     xlab = "x1", ylab = "x2"
+)
+combs <- expand.grid(unique(df1$grp1), unique(df1$grp2))
+for(i in 1:nrow(combs)) {
+  subdf <- df1[df1$grp1 == combs[i, 1] & df1$grp2 == combs[i, 2], ]
+  sorted_idx <- sort(subdf$x1, index.return = TRUE)$ix
+  lines(subdf$x1[sorted_idx], subdf$y[sorted_idx],
+        type = "l", lwd = 0.5,
+        col = adjustcolor(subdf[1,]$grp2, 0.3))
+}
+legend("topright",
+       legend = paste0("Individual", 1:5),
+       col = 1:5,
+       lty = c(1),
+)
+invisible(dev.off())
+
+#
+```
+
+<!-- }}} Simulate data -->
+
+![Hierarchical Mixed Curve data](./hmc_1d_data.png){width=95%}
+
+Now, we can fit the Nadaraya-Watson hierarchical kernel regression model using
+the `lpkme` function from the `mixedcurve` package. We will specify the
+bandwidth, kernel type, degree, and use the formula `y ~ K_h(x) + (K_h(x) | grp2 / grp1)` to indicate
+that we want to fit a local polynomial mixed effect model across domain
+`x` with group 1 nested within group 2 random effects.
+
+<!-- {{{ Fit GNW model -->
+
+```{r, message=FALSE, warning=FALSE}
+
+# # 4. Fit GNW kernel regression model (in parallel)
+# qseq <- seq(0.0, 1.0, length.out = 200)
+# lpk1 <- mixedcurve::lpkme(y ~ K_h(x1) + (K_h(x1) | grp2 / grp1),
+#   queries = qseq,
+#   data = df1,
+#   degree = 0,
+#   kernel = mixedcurve::gauss_kern,
+#   h = 0.03,
+#   parallel = TRUE
+# )
+# 
+# pvals <- do.call(
+# rbind,
+# lapply(lpk1[[1]],
+#        function(elmt) {
+#          pvals <- elmt$pval$P
+#          pvals <- pvals[!is.na(pvals)]
+#          pvals
+#        })
+# )
+# plot(qseq, pvals, type = 'l')
+# 
+# indices <- c(t(matrix(seq(1, nj * ni), nrow = nj)))
+# rep_effects <- do.call(
+#   rbind,
+#   lapply(lpk1[[1]],
+#          function(elmt) {
+#            (unlist(elmt$ranef$grp1))
+#          })
+# )
+# ind_effects <- do.call(
+#   rbind,
+#   lapply(lpk1[[1]],
+#          function(elmt) {
+#            (unlist(elmt$ranef$grp2))
+#          })
+# )
+# ind_effects <- do.call(cbind, replicate(nj, ind_effects, simplify = FALSE))
+# feqrs <- do.call(rbind,
+#                  lapply(lpk1[[1]],
+#                         function(elmt) {
+#                           (unlist(elmt$fixefs))
+#                         }))
+# qrs <- apply(ind_effects + rep_effects, 2, function(col) col + feqrs)
+# # 5. Plot the results
+# png("hmc_1d_fit.png", width = 800, height = 800, res = 100)
+# mixedcurve::dark_mode()
+# plot(df1$x, df1$y,
+#   col = adjustcolor(df1$grp2, 0.2),
+#   pch = 20, ylim = c(-0.2, 0.5),
+#   ylab = "y", xlab = "x",
+#   main = " HMC fit"
+# )
+# for (i in seq_len(ncol(qrs))) {
+#   lines(qseq, qrs[, i],
+#         col = adjustcolor((round(indices[i] / nj + 0.41)), 0.50),
+#         lwd = 3)
+# }
+# lines(qseq, feqrs[, 1], col = "orange", lwd = 6)
+# legend("topright",
+#   legend = c("Estimated Population Curve",
+#              "Estimated Rep Curves",
+#              "Raw Data"),
+#   col = c("orange", "white", "white"),
+#   lty = c(1, 1, NA),
+#   pch = c(NA, NA, 20),
+#   lwd = c(6, 1, NA)
+# )
+# invisible(dev.off())
+
+#
+```
+
+<!-- }}} Fit GNW model -->
+
+![Hierarchical Mixed Curve data with HMC fit](./hmc_1d_fit.png){width=95%}
+
+## Westfall-Young Adjusted P-values
+
+<!-- {{{ WY adjusted p-values -->
+```{r, message=FALSE, warning=FALSE}
+
+print("Computing Westfall-Young adjusted p-values (this may take a while)...")
+# cl <- parallel::makeCluster(parallel::detectCores() - 1)
+# parallel::clusterEvalQ(cl, {
+#   library(mixedcurve)
+# })
+# 
+# wy_pvals <- mixedcurve::wy_full(dataf = df1,
+#                                 xseq = qseq,
+#                                 nperm = 100,
+#                                 gen_pvals_fun = function(data, xseq) {
+#                                   lpk_res <- mixedcurve::lpkme(
+#                                     y ~ K_h(x1) + (K_h(x1) | grp2 / grp1),
+#                                     queries = xseq,
+#                                     data = data,
+#                                     degree = 0,
+#                                     kernel = mixedcurve::gauss_kern,
+#                                     h = 0.03,
+#                                     parallel = FALSE
+#                                   )
+#                                   as.numeric(lapply(lpk_res[[1]],
+#                                                 function(elmt) {
+#                                                   pvals <- elmt$pval$P
+#                                                   pvals <- pvals[!is.na(pvals)]
+#                                                   pvals
+#                                                 }))
+#                                 },
+#                                 gen_perm_fun = function(data) {
+#                                   indices <- unlist(lapply(
+#                                     sample(1:100, replace = FALSE) * 100 ,
+#                                     function(x) { 
+#                                       x + 1:100 - 100
+#                                     }
+#                                   ))
+#                                   return(data[indices, ])
+#                                 },
+#                                 cl = cl)
+# parallel::stopCluster(cl)
+# wy_pvals
+# plot(qseq, wy_pvals, type = 'l', main = "Westfall-Young Adjusted P-values",
+#      ylab = "Adjusted P-value", xlab = "x1")
+# # NOTE: seems off....?
+#
+```
+
+<!-- }}} WY adjusted p-values -->
+
+

@@ -1,10 +1,14 @@
 # TARGET := "gmc_1d"
 # TARGET := "nw_2d_w_covariate"
 # TARGET := "nw_2d"
-TARGET := "nw_1d"
+TARGET := "glpk_1d_w_covariate"
 
 open-vignette:
     @xdg-open ./doc/{{TARGET}}.html &
+    clear
+
+open-single-vignette:
+    @xdg-open ./vignettes/{{TARGET}}/{{TARGET}}.html &
     clear
 
 open-all-vignettes:
@@ -25,10 +29,10 @@ build-all-vignettes:
     for dir in ./vignettes/*/; do \
         dir_name=$(basename "$dir"); \
         echo "Processing directory: $dir"; \
-        echo "Checking for file: ./vignettes/$dir_name/$dir_name.rmd"; \
+        echo "Checking for file: ./vignettes/$dir_name.rmd"; \
         if [ -f "./vignettes/$dir_name/$dir_name.rmd" ]; then \
             echo "Found $dir_name.rmd in: $dir"; \
-            Rscript -e "rmarkdown::render(file.path('./vignettes/$dir_name', '$dir_name.rmd'), output_format = 'all', output_file = '$dir_name.html', output_dir = './vignettes/$dir_name')"; \
+            Rscript -e "rmarkdown::render(file.path('./vignettes/$dir_name.rmd'), output_format = 'all', output_file = '$dir_name.html', output_dir = './vignettes/$dir_name')"; \
         else \
             echo "$dir_name.rmd not found in: $dir"; \
         fi; \
@@ -38,7 +42,7 @@ build-all-vignettes:
 
 
 build-single-vignette:
-    Rscript -e "rmarkdown::render('./vignettes/nw_1d/nw_1d.rmd', output_format = 'all', output_file = 'nw_1d.html', output_dir = './vignettes/nw_1d/')"
+    Rscript -e "rmarkdown::render('./vignettes/{{TARGET}}.rmd', output_format = 'all', output_file = '{{TARGET}}.html', output_dir = './vignettes/{{TARGET}}/')"
 
 test-watch:
     trap 'exit' INT; while sleep 0.1; do find tests/testthat R -type f \( -iname '*.r' \) | entr -d sh -c 'clear; Rscript -e "devtools::test()"'; done

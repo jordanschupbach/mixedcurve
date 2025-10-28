@@ -48,9 +48,12 @@ lpk_query <- function(formula,
     data = data,
     weights = w
   )
+  # pvals <- anova(lm1)$Pr
+  # pvals <- pvals[!is.na(pvals)]
   list(
     query = query,
-    coefs = coef(lm1)
+    coefs = coef(lm1),
+    pvals = summary(lm1)$coefficients[,4]
   )
 }
 
@@ -72,7 +75,8 @@ lpk <- function(formula,
   #' datas <- data
   if (parallel) {
     if (is.null(cl)) {
-      cl <- parallel::makeCluster(parallel::detectCores() - 1, type = "PSOCK")
+      cl <- parallel::makeCluster(parallel::detectCores() - 1,
+                                  type = "PSOCK")
       parallel::clusterEvalQ(cl, {
         library(mixedcurve)
       })
@@ -147,9 +151,13 @@ glpk_query <- function(formula,
     family = family,
     weights = w
   )
+  # pvals <- anova(lm1)$Pr
+  # pvals <- pvals[!is.na(pvals)]
+  pvals <- summary(lm1)$coefficients[, 4]
   list(
     query = query,
-    coefs = coef(lm1)
+    coefs = coef(lm1),
+    pvals = pvals
   )
 }
 
@@ -227,6 +235,7 @@ lpkme_query <- function(formula,
                         h) {
   kernel <- mixedcurve::gauss_kern
   lme4_form <- as.formula(mixedcurve::kernel_to_lme4_formula(formula))
+  lme4_drop_form <- as.formula(mixedcurve::kern_to_lme4_drop_grp(formula))
   parse_terms <- mixedcurve::parse_terms(as.formula(formula))
   domain_cols <- parse_terms[parse_terms$type == "kernel fixed effect",]$lhs
   domain_cols <- unlist(strsplit(gsub("\\s+", "", domain_cols), "\\*"))
@@ -239,11 +248,18 @@ lpkme_query <- function(formula,
     data = data,
     weights = w
   )
+  lme_fit2 <- lme4::lmer(
+    lme4_drop_form,
+    data = data,
+    weights = w
+  )
+  pval <- anova(lm_fit2, lme_fit)
   list(
     query = query,
     coefs = coef(lm_fit),
     fixefs = lme4::fixef(lm_fit),
-    ranefs = lme4::ranef(lm_fit)
+    ranefs = lme4::ranef(lm_fit),
+    pval = pval
   )
 }
 

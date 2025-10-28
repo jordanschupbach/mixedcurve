@@ -27,48 +27,30 @@ data.
 
 ## Example Usage
 
-Let's start by simulating some functional Poisson data with group effects to
-fit a generalized Nadaraya-Watson kernel regression model to. We will make some
-modifications to the Cuevas et al. m3 curve for this purpose.
+Let's start by simulating some Poisson data to fit a generalized Nadaraya-Watson kernel
+regression model to. We will make some modifications to the Cuevas et al. m3 curve for this purpose.
 
 <!-- {{{ Simulate data -->
 
-```{R}
-set.seed(300)
-n <- 1000
-x <- runif(n)
-xmat <- cbind(rep(1, n), x, x^2)
-betas_true <- c(2.323, 1.73, -1.4)
-eta_true <- as.vector(xmat %*% betas_true)
-y <- rpois(n, exp(eta_true))
-df1 <- data.frame(y = y, x = x)
+```{r, fig.filename="m2_fit.png", fig.width=7, fig.height=7,  message=FALSE, warning=FALSE}
 
-# 3. Plot the data
-png("gnw_1d_poisson_data.png", width = 2 * 800, height = 800, res = 100)
+library(mixedcurve)
+n <- c(500)
+set.seed(123)
+df1 <- mixedcurve::gen_hfanova_data(
+  f = function(t, i) {
+    5 * mixedcurve::m3(t, i)
+  },
+  n = c(500, 1), sigmas = c(0.3, 0), bounds = c(0, 1),
+  ndim = 1, px = NULL, pxargs = NULL,
+  family = "poisson", white_noise = TRUE
+)
 mixedcurve::dark_mode()
-plot(df1$x, df1$y,
-  col = adjustcolor("yellow", 0.2),
-  pch = 20, ylab = "y", xlab = "x",
-  main = "Quadratic Poisson Data"
-)
-points(df1$x, exp(eta_true),
-  col = adjustcolor("red", 1.00), pch = 20
-)
-legend("topright",
-  legend = c("True means", "Observed data"),
-  col = c(adjustcolor("red", 0.90),
-          adjustcolor("yellow", 0.90)
-  ),
-  pch = c(20, 20)
-)
-invisible(dev.off())
-
-#
+plot(df1$x1, df1$y, main = "Cuevas M2 function data (1)",
+     ylab = "y", xlab = "x", pch = 20, col = adjustcolor("white", 0.6))
 ```
 
 <!-- }}} Simulate data -->
-
-![Functional Poisson data](./gnw_1d_poisson_data.png){width=95%}
 
 Now, we can fit the generalized Nadaraya-Watson kernel regression model using
 the `lpk` function from the `mixedcurve` package. We will specify the
@@ -78,48 +60,98 @@ that we want to fit a generalized local polynomial kernel model across domain
 
 <!-- {{{ Fit GNW model -->
 
-```{r, message=FALSE, warning=FALSE}
+```{r, fig.filename="m2_fit.png", fig.width=7, fig.height=7,  message=FALSE, warning=FALSE}
 
-# 4. Fit GNW kernel regression model (in parallel)
-qseq <- seq(0.0, 1.0, length.out = 200)
-glpk1 <- mixedcurve::glpk(y ~ K_h(x),
-  queries = qseq,
-  data = df1,
-  degree = 0,
-  kernel = mixedcurve::gauss_kern,
-  h = 0.02,
-  parallel = TRUE
-)
+bandwidth <- 0.03
+queries <- seq(0, 1, length.out = 100)
+cl <- parallel::makeCluster(parallel::detectCores() - 1)
+invisible(parallel::clusterEvalQ(cl, library(mixedcurve)))
+parallel::clusterExport(cl, varlist = c("df1", "bandwidth", "queries"))
+nw_fit <- mixedcurve::glpk(y ~ K_h(x1), h = bandwidth, family = "poisson",
+                           kernel = mixedcurve::gauss_kern, degree = 0,
+                           data = df1, queries = queries,
+                           parallel = TRUE, cl = cl)
+parallel::stopCluster(cl)
 
-# Extract the fitted curve
-qrs <- unlist(lapply(glpk1[[1]], function(elmt) { elmt$coefs }))
-
-# 5. Plot the results
-png("gnw_1d_poisson_fit.png", width = 2 * 800, height = 800, res = 100)
+coefs <- matrix(unlist(lapply(nw_fit[[1]], function(fit) fit$coefs)),
+                ncol = 1, byrow = TRUE)
+fits <- cbind(coefs[, 1])
 mixedcurve::dark_mode()
-plot(df1$x, df1$y,
-  col = adjustcolor("yellow", 0.2),
-  pch = 20, ylim = c(0, 30),
-  ylab = "y", xlab = "x",
-  main = "Quadratic Poisson data with GNW fit"
-)
-points(df1$x, exp(eta_true), col = adjustcolor("blue", 1.00), cex = 0.5)
-lines(qseq, qrs, col = adjustcolor("red", 1.00), lwd = 2)
+plot(df1$x1, df1$y, main = "Nadaraya-Watson Kernel Regression of M3 data",
+     pch = 20, col = adjustcolor("white", 0.6), cex = 1.0,
+     xlab = "x", ylab = "y")
+for (i in 1:1) {
+  lines(queries, exp(fits[, i]), col = adjustcolor(i, 1.0), lwd = 2)
+}
 legend("topright",
-  legend = c("True means", "Estimated means"),
-  col = c(adjustcolor("blue", 0.90),
-          adjustcolor("red", 0.90)),
-  lty = c(1, 1),
-  lwd = 2
-)
-invisible(dev.off())
-
-#
+       legend = c("Fitted Curve", "Raw Data"),
+       lty = c(1, NA), pch = c(NA, 20),
+       col = c(adjustcolor(1, 1.0), adjustcolor("white", 0.5)),
+       bty = "n")
 ```
 
 <!-- }}} Fit GNW model -->
 
-![Functional Poisson data with GNW fit](./gnw_1d_poisson_fit.png){width=95%}
+## W-Y Adjusted p-values
 
+Care ought to be taken when interpreting the p-values from generalized kernel regression
+models, as hypothesis tests may not make sense to ask. For example, in this model without a
+covariate effect, we are testing whether the mean function is zero on the log scale, which 
+is testing whether the mean function is one on the original scale. Depending on the application,
+this may not be a meaningful hypothesis to test. We carry out this hypothesis test nonetheless
+for illustrative purposes using the `wy_full()` method.
 
-#### TODO: add WY adjusted test
+<!-- {{{ WY adjusted p-values  -->
+```{r, fig.filename="m2_wy.png", fig.width=7, fig.height=10,  message=FALSE, warning=FALSE}
+
+cl <- parallel::makeCluster(parallel::detectCores() - 1)
+invisible(parallel::clusterEvalQ(cl, library(mixedcurve)))
+parallel::clusterExport(cl, varlist = c("df1", "bandwidth", "queries"))
+wy_pvals <- mixedcurve::wy_full(
+  dataf = df1, xseq = queries, nperm = 100,
+  gen_pvals_fun = function(data, xseq) {
+    lpk_res <- mixedcurve::lpk(
+      y ~ K_h(x1), queries = xseq, data = data, degree = 0,
+      kernel = mixedcurve::gauss_kern,
+      h = bandwidth, parallel = FALSE
+    )
+    as.numeric(lapply(lpk_res[[1]], function(elmt) {
+      elmt$pvals
+    }))
+  },
+  gen_perm_fun = function(data) {
+    data$y <- sample(data$y, replace = FALSE)
+    data
+  },
+  cl = cl
+)
+parallel::stopCluster(cl)
+
+par(mfrow = c(2, 1))
+mixedcurve::dark_mode()
+plot(df1$x1, df1$y, main = "Nadaraya-Watson Kernel Regression of M2 data",
+     pch = 20, col = adjustcolor(df1$grp, 0.6), cex = 1.0,
+     xlab = "x", ylab = "y")
+lines(queries, exp(fits[, 1]), col = adjustcolor(1, 1.0), lwd = 2)
+legend("topright", legend = c("Fit Group 1", "Raw Data"),
+       lty = c(1, NA), pch = c(NA, 20),
+       col = c(adjustcolor(1, 1.0), adjustcolor("white", 0.5)), bty = "n")
+plot_pval_regions(queries, wy_pvals, pthresh = 0.05)
+plot(queries, wy_pvals, type = "l",
+  main = "Westfall-Young adjusted p-values",
+  xlab = "x", ylab = "W-Y Adjusted p-value",
+  ylim = c(0, 1)
+)
+abline(h = 0.05, col = "red", lty = 2)
+plot_pval_regions(queries, wy_pvals, pthresh = 0.05)
+print(paste0("WY-Adjusted p-value: ", min(wy_pvals)))
+```
+
+<!-- }}} WY adjusted p-values  -->
+
+As we can see from the plot, there are regions where the Westfall-Young adjusted p-values
+are above the 0.05 significance threshold, identifying regions where we fail to reject the null hypothesis
+that the mean function is equal to one (or that the log of the mean function, eta, is equal to zero),
+while overall we reject the null hypothesis that the mean curve is equal to one at all points in the domain
+or equivalently that $\eta(x) = log(\mu(x)) = 0$ for all $x$.
+

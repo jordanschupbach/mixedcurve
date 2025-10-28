@@ -1,0 +1,158 @@
+---
+title: "Generalized (1d) Hierarchical Mixed-Curve Regression"
+author: "Jordan Schupbach"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Generalized (1d) Hierarchical Mixed-Curve Regression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<!-- {{{ Setup -->
+
+```{r setup}
+#| include: false
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+<!-- }}} Setup -->
+
+## Introduction
+This vignette demonstrates how to use the `mixedcurve` package to fit a
+generalized Nadaraya-Watson hierarchical kernel regression model to
+one-dimensional Poisson data.
+
+## Example Usage
+Let's start by simulating some functional Poisson data with group effects to
+fit a generalized Nadaraya-Watson kernel regression model to. We will make some
+modifications to the Cuevas et al. M3 curve for this purpose.
+
+<!-- {{{ Simulate data -->
+
+```{R}
+
+set.seed(300)
+ni <- 5
+nj <- 10
+nk <- 100
+ndim <- 1
+bounds <- lapply(seq_len(ndim), function(t) c(0, 1))
+df1 <- mixedcurve::gen_hfanova_data(
+  f = function(t, i) { 
+    5 * mixedcurve::m3(t, i)
+  },
+  family = "poisson",
+  n = c(nk, nj, ni),
+  ndim = ndim,
+  sigmas = c(0.001, 0.02, 1.0),
+  px = runif, 
+  pxargs = lapply(1:ndim, function(i) list(min = 0, max = 1))
+)
+color_values <- cut(df1$y, breaks = 100, labels = FALSE)
+colors <- viridis::viridis(100)
+png("ghmc_1d_poisson_data.png", width = 800, height = 800, res = 100)
+mixedcurve::dark_mode()
+plot(df1$x1, df1$y, col = adjustcolor(df1$grp2, 0.3), pch = 20,
+     main = "Simulated Poisson Hierarchical Functional Data",
+     xlab = "x1", ylab = "y"
+)
+combs <- expand.grid(unique(df1$grp1), unique(df1$grp2))
+legend("topright",
+       legend = paste0("Individual", 1:5),
+       col = 1:5,
+       pch = c(20),
+)
+invisible(dev.off())
+
+#
+```
+
+<!-- }}} Simulate data -->
+
+![Functional Poisson data](./ghmc_1d_poisson_data.png){width=95%}
+
+Now, we can fit the generalized Nadaraya-Watson kernel regression model using
+the `lpk` function from the `mixedcurve` package. We will specify the
+bandwidth, kernel type, degree, and use the formula `y ~ K_h(x) + (K_h(x) | grp2 / grp1` to
+indicate that we want to fit a generalized local polynomial mixed effect
+model across domain `x` with group 1 nested within group 2 random effects.
+
+<!-- {{{ Fit GNW model -->
+
+```{r, message=FALSE, warning=FALSE}
+
+
+# 4. Fit the generalized Nadaraya-Watson hierarchical mixed-curve model
+qseq <- seq(0.0, 1.0, length.out = 200)
+lpk1 <- mixedcurve::glpkme(y ~ K_h(x1) + (K_h(x1) | grp2 / grp1),
+  family = "poisson",
+  queries = qseq,
+  data = df1,
+  degree = 0,
+  kernel = mixedcurve::gauss_kern,
+  h = 0.05,
+  parallel = TRUE
+)
+indices <- c(t(matrix(seq(1, nj * ni), nrow = nj)))
+rep_effects <- do.call(
+  rbind,
+  lapply(lpk1[[1]],
+         function(elmt) {
+           (unlist(elmt$ranef$grp1))
+         })
+)
+ind_effects <- do.call(
+  rbind,
+  lapply(lpk1[[1]],
+         function(elmt) {
+           (unlist(elmt$ranef$grp2))
+         })
+)
+ind_effects <- do.call(cbind, replicate(nj, ind_effects, simplify = FALSE))
+feqrs <- do.call(rbind,
+                 lapply(lpk1[[1]],
+                        function(elmt) {
+                          (unlist(elmt$fixefs))
+                        }))
+qrs <- apply(ind_effects + rep_effects, 2, function(col) col + feqrs)
+# 5. Plot the results
+png("ghmc_1d_poisson_fit.png", width = 800, height = 800, res = 100)
+mixedcurve::dark_mode()
+plot(df1$x, df1$y,
+  col = adjustcolor(df1$grp2, 0.2),
+  pch = 20, ylim = c(-0.2, 9.5),
+  ylab = "y", xlab = "x",
+  main = " HMC fit"
+)
+for (i in seq_len(ncol(qrs))) {
+  lines(qseq, exp(qrs[, i]),
+        col = adjustcolor((round(indices[i] / nj + 0.41)), 0.50),
+        lwd = 3)
+}
+lines(qseq, exp(feqrs[, 1]), col = "orange", lwd = 6)
+legend("topright",
+  legend = c("Estimated Population Curve",
+             "Estimated Rep Curves",
+             "Raw Data"),
+  col = c("orange", "white", "white"),
+  lty = c(1, 1, NA),
+  pch = c(NA, NA, 20),
+  lwd = c(6, 1, NA)
+)
+invisible(dev.off())
+
+#
+```
+
+<!-- }}} Fit GNW model -->
+
+![Hierarchical Functional Poisson data with GHMC fit](./ghmc_1d_poisson_fit.png){width=95%}
+
+#### TODO: add WY adjusted test
+
+
+

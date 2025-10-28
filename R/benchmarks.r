@@ -827,6 +827,128 @@ plot.fundata <- function(fundata, curves, color_scale = NULL) {
 
 # }}} gen_fanova_data
 
+# {{{ create_group_df(n)
+
+create_group_df <- function(n) {
+  tdf <- as.matrix(1:n[1], 1)
+  for (i in 2:length(n)) {
+    tgrp <- rep(1:n[i], each = prod(n[1:(i - 1)]))
+    tdf <- cbind(do.call(rbind, replicate(n[i], tdf, simplify = FALSE)), tgrp)
+  }
+  tdf <- as.data.frame(tdf)
+  colnames(tdf) <- paste0("grp", 0:(length(n) - 1))
+  tdf[] <- lapply(tdf, as.factor)
+  tdf
+}
+
+# }}} create_group_df(n)
+
+# {{{ gen_hfanova_data(...)
+
+gen_hfanova_data <- function(f, n, sigmas, bounds, ndim = 1,
+                             ngrp = 3,
+                             px = NULL, pxargs = NULL,
+                             family = "gaussian",
+                             white_noise = TRUE) {
+  for (g in seq_len(ngrp)) {
+    #' {{{ Sample x
+    if (is.null(px) || is.null(pxargs)) {
+      px <- runif
+      if (is.vector(bounds) && ndim != 1) {
+        stop("If bounds is a vector, ndim must be 1")
+      }
+      if (is.vector(bounds) && ndim == 1) {
+        tbounds <- list()
+        tbounds[[1]] <- bounds
+        bounds <- tbounds
+      }
+      pxargs <- lapply(
+        1:ndim,
+        function(i) {
+          list(min = bounds[[i]][1], max = bounds[[i]][2])
+        }
+      )
+    }
+    xdata <- as.data.frame(
+      do.call(
+        cbind,
+        lapply(
+          seq_along(pxargs),
+          function(i) {
+            do.call(px, c(list(n = prod(n)), pxargs[[i]]))
+          }
+        )
+      )
+    )
+    colnames(xdata) <- paste0("x", seq_len(ncol(xdata)))
+    #' }}} Sample x
+    #' {{{ Create group df
+    df1 <- mixedcurve::create_group_df(n)
+    neffects <- unlist(lapply(seq_along(n), function(i) {
+      prod(n[length(n):(length(n) - (i - 1))])
+    }))
+    neffects <- neffects[rev(seq_along(neffects))]
+    #' }}} Create group df
+    #' {{{ Sample noise
+    if (white_noise) {
+      noises <- lapply(
+        seq_along(sigmas),
+        function(i) {
+          rnorm(neffects[i], 0, sigmas[i])
+        }
+      )
+      noise_cols <- do.call(
+        cbind,
+        lapply(seq_along(noises),
+               function(i) {
+                 rep(noises[[i]], each = prod(n) / length(noises[[i]]))
+               })
+      )
+    } else {
+      stop("Only white noise currently implemented")
+    }
+    epsilon <- apply(noise_cols, 1, sum)
+    #' }}} Sample noise
+    #' {{{ Sample y
+    if (family == "gaussian" ||
+          (class(family) == "family" && family$family == "gaussian")) {
+      y <- f(as.matrix(xdata), g) + epsilon
+    } else if (family == "poisson" ||
+                 (class(family) == "family" && family$family == "poisson")) {
+      mu <- exp(f(as.matrix(xdata), g) + epsilon)
+      y <- rpois(length(mu), mu)
+    } else if (family == "binomial" ||
+                 (class(family) == "family" && family$family == "binomial")) {
+      stop("Binomial family not fully tested")
+      mu <- plogis(f(as.matrix(xdata), g) + epsilon)
+      y <- rbinom(length(mu), size = 1, prob = mu)
+    } else if (family == "Gamma" ||
+                 (class(family) == "family" && family$family == "Gamma")) {
+      stop("Gamma family not fully tested")
+      #' mu <- exp(f(as.matrix(xdata), 1) + epsilon)
+      #' shape <- 1 / (sigmas[1]^2)
+      #' scale <- mu / shape
+      #' y <- rgamma(length(mu), shape = shape, scale = scale)
+    } else {
+      stop(paste("Family", family, "not implemented"))
+    }
+    #' }}} Sample y
+    # Combine into final data frame
+    if (g == 1) {
+      ret <- cbind(y, xdata, df1, rep(1, length(y)))
+      colnames(ret) <- c("y", colnames(xdata), colnames(df1), "cov")
+    } else {
+      tret <- cbind(y, xdata, df1, rep(g, length(y)))
+      colnames(tret) <- c("y", colnames(xdata), colnames(df1), "cov")
+      ret <- rbind(ret, tret)
+    }
+  }
+  colnames(ret) <- c("y", colnames(xdata), colnames(df1), "cov")
+  ret$cov <- as.factor(ret$cov)
+  ret
+}
+# }}} gen_hfanova_data(...)
+
 # Local Variables:
 # eval: (origami-mode t)
 # End:

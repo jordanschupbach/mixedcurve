@@ -254,3 +254,54 @@ or (K_h(x * y) | grp / grp2)).")
 
 # }}} kernel_to_lme4_formula
 
+
+kern_to_lme4_drop_grp <- function(formula) {
+  pf <- mixedcurve::parse_terms(formula)
+  if (sum(pf$type == "kernel fixed effect") > 1) {
+    stop("Multiple fixed effect kernel terms found in the formula.
+Please include only one fixed effect kernel term or a
+kernel term across a categorical term (e.g., K_h(x * y)
+or K_h(x * y | cat)).")
+  }
+  if (sum(pf$type == "kernel random effect") > 1) {
+    stop("Multiple random effect kernel terms found in the formula.
+Please include only one random effect kernel term or a
+kernel term across a categorical term (e.g., (K_h(x * y) | grp)
+or (K_h(x * y) | grp / grp2)).")
+  }
+  if (length(pf$term[which(pf$type == "kernel fixed effect")]) == 0) {
+    stop("No fixed-effect kernel term found in the formula.")
+  }
+  if (length(pf$term[which(pf$type == "kernel random effect")]) == 0) {
+    stop("No random-effect kernel term found in the formula.")
+  }
+  response_term <- pf$term[which(pf$type == "response")]
+  kfe_term <- pf$term[which(pf$type == "kernel fixed effect")]
+  kfe_term_lhs_rhs <- mixedcurve::parse_kernel_term(kfe_term)
+  kfe_term_rhs <- kfe_term_lhs_rhs$rhs
+  kre_rhs_term <- pf$rhs[which(pf$type == "kernel random effect")]
+  kre_lhs_term <- pf$lhs[which(pf$type == "kernel random effect")]
+  parsed_kre_lhs_term <- mixedcurve::parse_kernel_term(kre_lhs_term)
+  mixedcurve::parse_kernel_term(kre_lhs_term)
+  formula_str <- paste0(
+    response_term, " ~ ",
+    if (!is.na(kfe_term_rhs)) {
+      "1"
+    } else {
+      "-1"
+    },
+    if (length(pf$term[which(pf$type == "random effect")]) > 0) {
+      paste0(" + ", paste(pf$term[which(pf$type == "random effect")],
+        collapse = " + "
+      ))
+    } else {
+      ""
+    },
+    if (!is.na(parsed_kre_lhs_term$lhs)) {
+      paste0(" + (1", " | ", kre_rhs_term, ")")
+    } else {
+      ""
+    }
+  )
+  as.formula(formula_str)
+}

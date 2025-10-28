@@ -1,0 +1,29 @@
+---
+title: "Nadaraya-Watson (2d) Mixed Curve Regression"
+author: "Jordan Schupbach"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Nadaraya-Watson (2d) Mixed Curve Regression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## A nice title
+asdf
+
+## A nicer title
+fdsa
+
+
+```{r}
+
+tdf <- data.frame(y = 1:10 + rnorm(10), x = 1:10,
+                  id = rep(1:2, each = 5))
+# tdf$id <- as.factor(tdf$id)
+# pvals <- anova(lme4::lmer(y ~ -1 + (1|id), data = tdf))$F
+# pvals <- pvals[!is.na(pvals)]
+# pvals
+
+
+```
