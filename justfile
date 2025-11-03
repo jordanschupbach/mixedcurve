@@ -1,5 +1,5 @@
 # TARGET := "gmc_1d"
-TARGET := "lpk_2d"
+TARGET := "glpk_2d"
 
 open-vignette:
     @xdg-open ./doc/{{TARGET}}.html &
