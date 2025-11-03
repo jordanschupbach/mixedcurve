@@ -32,32 +32,36 @@
 #' @param h A positive numeric value representing the bandwidth for the kernel.
 lpk_query <- function(formula,
                       query,
+                      h,
                       data,
                       degree = 0,
-                      kernel = mixedcurve::gauss_kern, h) {
-
+                      kernel = mixedcurve::gauss_kern,
+                      alternative_hypothesis = NULL,
+                      kthresh = 0) {
+  pvals <- NULL
   lme_form <- as.formula(mixedcurve::kernel_to_lm_formula(formula))
-  lme_drop_form <- as.formula(mixedcurve::kernel_to_lm_drop_formula(formula))
   w <- as.numeric(mixedcurve::lm_kernel_weights(
     formula,
     data = data,
     bwidth = h,
     query = query
   ))
-  data$w <- w # NOTE: forces a copy of data?
+  data$w <- w
+  data <- data[which(data$w > kthresh), ]
   lm1 <- lm(
     lme_form,
     data = data,
     weights = w
   )
-  lm2 <- lm(
-    lme_drop_form,
-    data = data,
-    weights = w
-  )
-  pvals <- anova(lm1, lm2)$Pr
-  pvals <- pvals[!is.na(pvals)]
-  # summary(lm1)$coefficients[,4]
+  if (!is.null(alternative_hypothesis)) {
+    lm2 <- lm(
+      as.formula(mixedcurve::kernel_to_lm_formula(alternative_hypothesis)),
+      data = data,
+      weights = w
+    )
+    pvals <- anova(lm1, lm2)$Pr
+    pvals <- pvals[!is.na(pvals)]
+  }
   list(
     query = query,
     coefs = coef(lm1),
@@ -72,7 +76,10 @@ lpk <- function(formula,
                 h,
                 degree = 0,
                 kernel = mixedcurve::gauss_kern,
-                parallel = TRUE, cl = NULL) {
+                parallel = TRUE,
+                alternative_hypothesis = NULL,
+                kthresh = 0,
+                cl = NULL) {
   if (is.matrix(queries)) {
     tqueries <- split(queries, seq_len(nrow(queries)))
   } else if (is.vector(queries)) {
@@ -94,7 +101,9 @@ lpk <- function(formula,
           data = datas,
           degree = degree,
           kernel = kernel,
-          h = h
+          h = h,
+          alternative_hypothesis = alternative_hypothesis,
+          kthresh = kthresh
         )
       }, cl = cl, datas = data)
       on.exit(parallel::stopCluster(cl))
@@ -105,7 +114,9 @@ lpk <- function(formula,
         data = data,
         degree = degree,
         kernel = kernel,
-        h = h
+        kthresh = kthresh,
+        h = h,
+        alternative_hypothesis = alternative_hypothesis
       )
     }, cl = cl)
   } else {
@@ -115,7 +126,9 @@ lpk <- function(formula,
         data = data,
         degree = degree,
         kernel = kernel,
-        h = h
+        kthresh = kthresh,
+        h = h,
+        alternative_hypothesis = alternative_hypothesis
       )
     })
   }
@@ -144,7 +157,9 @@ glpk_query <- function(formula,
                        data,
                        degree = 0,
                        kernel = mixedcurve::gauss_kern,
-                       h, family = "gaussian") {
+                       h, family = "gaussian",
+                       kthresh = 0
+                       ) {
   lme_form <- as.formula(mixedcurve::kernel_to_lm_formula(formula))
   lme_drop_form <- as.formula(mixedcurve::kernel_to_lm_drop_formula(formula))
   w <- as.numeric(mixedcurve::lm_kernel_weights(
@@ -153,7 +168,8 @@ glpk_query <- function(formula,
     bwidth = h,
     query = query
   ))
-  data$w <- w # NOTE: forces a copy?
+  data$w <- w
+  data <- data[which(data$w > kthresh), ]
   lm1 <- glm(
     lme_form,
     data = data,
@@ -185,7 +201,8 @@ glpk <- function(formula,
                  degree = 0,
                  kernel = mixedcurve::gauss_kern,
                  family = "gaussian",
-                 parallel = TRUE, cl = NULL) {
+                 parallel = TRUE, cl = NULL,
+                 kthresh = 0) {
   if (is.matrix(queries)) {
     tqueries <- split(queries, seq_len(nrow(queries)))
   } else if (is.vector(queries)) {
@@ -207,7 +224,8 @@ glpk <- function(formula,
           degree = degree,
           kernel = kernel,
           h = h,
-          family = family
+          family = family,
+          kthresh = kthresh
         )
       }, cl = cl, datas = data)
       on.exit(parallel::stopCluster(cl))
@@ -219,7 +237,8 @@ glpk <- function(formula,
         degree = degree,
         kernel = kernel,
         h = h,
-        family = family
+        family = family,
+        kthresh = kthresh
       )
     }, cl = cl)
   } else {
@@ -230,7 +249,8 @@ glpk <- function(formula,
         degree = degree,
         kernel = kernel,
         h = h,
-        family = family
+        family = family,
+        kthresh = kthresh
       )
     })
   }

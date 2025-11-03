@@ -19,7 +19,7 @@
 
 # }}} License
 
-# {{{ perm fanova
+# {{{ perm_fanova()
 
 #' Permutation function for functional ANOVA
 #'
@@ -40,7 +40,7 @@ gen_perm_fanova <- function(dataf, grp_col = "grp", id_col = "id") {
 
 # }}} perm fanova
 
-# {{{ gen_pvals_anova
+# {{{ gen_pvals_anova()
 
 #' Generate p-values using ANOVA (requires data to be on a grid)
 #'
@@ -60,7 +60,7 @@ gen_pvals_anova <- function(dataf, xseq) {
 
 # }}} gen_pvals_anova
 
-# {{{ westfall-young full
+# {{{ wy_full()
 
 #' Westfall-Young full method
 #'
@@ -73,11 +73,15 @@ gen_pvals_anova <- function(dataf, xseq) {
 #'                       the data, takes dataf as argument
 wy_full <- function(dataf, xseq, nperm, gen_pvals_fun,
                     gen_perm_fun, cl = NULL) {
-  if (is.numeric(xseq)) {
+  # TODO: have options for parallel vs not
+  if (is.numeric(xseq) && is.vector(xseq)) {
     nx <- length(xseq)
+  } else if (is.numeric(xseq) && !is.vector(xseq)) {
+    nx <- nrow(xseq)
   } else {
     stop("xseq must be numeric vector")
   }
+  # Subset data here
   rpvals <- gen_pvals_fun(dataf, xseq)
   srpvals <- sort(rpvals, index.return = TRUE)
   pstars <- matrix(0, nrow = nx, ncol = nperm)
@@ -97,7 +101,7 @@ wy_full <- function(dataf, xseq, nperm, gen_pvals_fun,
     for (l in 1:nperm) {
       qstars[j, l] <- min(pstars[j:nx, l])
     }
-  }
+  } # is this slow????
   rj <- numeric(nx)
   for (j in 1:nx) {
     rj[j] <- mean(qstars[j, ] <= srpvals$x[j])
@@ -108,7 +112,7 @@ wy_full <- function(dataf, xseq, nperm, gen_pvals_fun,
 }
 # }}} westfall-young full
 
-# {{{ Westfall-young one-step
+# {{{ wy_one_step()
 
 #' Westfall-Young (Cox-Lee) one-step method
 #'
@@ -121,8 +125,10 @@ wy_full <- function(dataf, xseq, nperm, gen_pvals_fun,
 #'                       of the data, takes dataf as argument
 wy_one_step <- function(dataf, xseq, nperm, gen_pvals_fun,
                         gen_perm_fun, cl = NULL) {
-  if (is.numeric(xseq)) {
+  if (is.numeric(xseq) && is.vector(xseq)) {
     nx <- length(xseq)
+  } else if (is.numeric(xseq) && !is.vector(xseq)) {
+    nx <- nrow(xseq)
   } else {
     stop("xseq must be numeric vector")
   }
@@ -147,6 +153,57 @@ wy_one_step <- function(dataf, xseq, nperm, gen_pvals_fun,
 }
 
 # }}} Westfall-young one-step
+
+# {{{ snap_to_grid()
+
+snap_to_grid <- function(x, xseq) {
+  xseq[apply(as.matrix(x), 1, function(xi) {
+    which.min(abs(xseq - xi))
+  })]
+}
+
+# }}} snap_to_grid()
+
+# {{{ create_box_at_center()
+create_box_at_center <- function(center, half_widths) {
+  if (length(center) != length(half_widths)) {
+    stop("Center and half_widths must have the same length.")
+  }
+  box <- lapply(seq_along(center), function(i) {
+    c(center[i] - half_widths[i], center[i] + half_widths[i])
+  })
+  box
+}
+# }}} create_box_at_center()
+
+# {{{ box_subset()
+box_subset <- function(x, box) {
+  if (!is.matrix(x)) {
+    x <- matrix(x, ncol = 1)
+  }
+  if (is.list(box)) {
+    if (length(box) != ncol(x)) {
+      stop("Box must be a list of length equal to the number of columns in x.")
+    }
+    for (b in box) {
+      if (length(b) != 2) {
+        stop("Each bounding box element must have length 2.")
+      }
+    }
+  } else if (is.numeric(box) && length(box) == 2) {
+    box <- list(c(box[1], box[2]))
+  } else {
+    stop("For 1D case, box must be a numeric vector of length 2.")
+  }
+  inside_box <- rowSums(sapply(seq_len(ncol(x)), function(i) {
+    x[, i] >= box[[i]][1] & x[, i] <= box[[i]][2]
+  })) == ncol(x)
+  x[inside_box, , drop = FALSE]
+}
+
+
+# }}}
+
 
 # Local Variables:
 # eval: (origami-mode t)

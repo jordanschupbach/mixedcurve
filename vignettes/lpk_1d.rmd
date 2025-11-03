@@ -23,32 +23,31 @@ knitr::opts_chunk$set(
 This vignette demonstrates how to use the `mixedcurve` package to fit a
 Nadaraya-Watson kernel regression model to one-dimensional data.
 
-## Example Usage
+## Simulate Data
 Let's start by simulating some data according to a modified version of the
 doppler function to fit a Nadaraya-Watson curve kernel regression model to.
 
 <!-- {{{ Simulate Data -->
-```{r, fig.width=7, fig.height=5, dpi=600, out.width="700px", message=FALSE, warning=FALSE}
-library(mixedcurve)
+```{r, fig.width=7, fig.height=5, dpi=600, out.width="98%", message=FALSE, warning=FALSE}
 
+library(mixedcurve)
 # Simulate
 set.seed(123)
 mdoppler <- function(x) {
   sin(20 / (x + 0.25))
 }
-n <- 1000
+n <- 3000
 x <- runif(n, 0, 1)
 y <- mdoppler(x) + rnorm(n, sd = 0.1)
-png("doppler_data.png", width = 800, height = 800, res = 100)
 mixedcurve::dark_mode()
 plot(x, y, main = "Modified Doppler function data",
      pch = 20, col = adjustcolor("yellow", 0.2))
-invisible(dev.off())
 
 ```
+
 <!-- }}} Simulate Data -->
 
-![Modified Doppler function data](./doppler_data.png){width=95%}
+## Fit the model
 
 To fit the Nadaraya-Watson kernel regression model, we can use the `lpk`
 function from the `mixedcurve` package. We will specify the bandwidth, kernel
@@ -57,36 +56,95 @@ that we want to use a kernel smoother on the `x` variable with bandwidth `h`.
  
 <!-- {{{ Fit NW model -->
 
-```{r, message=FALSE, warning=FALSE}
-# Fit Nadaraya-Watson kernel regression model (in parallel)
+```{r, fig.width=7, fig.height=5, dpi=600, out.width="98%", message=FALSE, warning=FALSE}
 
+# Fit Nadaraya-Watson kernel regression model (in parallel)
 df1 <- data.frame(x = x, y = y)
 bandwidth <- 0.002
-queries <- seq(0, 1, length.out = 1000)
-cl = parallel::makeCluster(parallel::detectCores() - 1)
+qseq <- seq(0, 1, length.out = 1000)
+cl <- parallel::makeCluster(parallel::detectCores() - 1)
 invisible(parallel::clusterEvalQ(cl, library(mixedcurve)))
-parallel::clusterExport(cl, varlist = c("df1", "bandwidth", "queries"))
-nw_fit <- mixedcurve::lpk(y ~ K_h(x), h = bandwidth,
-                          kernel = mixedcurve::gauss_kern, degree = 0,
-                          data = df1, queries = queries,
-                          parallel = TRUE, cl = cl)
+parallel::clusterExport(cl, varlist = c("df1", "bandwidth", "qseq"))
+fit <- mixedcurve::lpk(y ~ K_h(x), h = bandwidth,
+  kernel = mixedcurve::gauss_kern, degree = 0,
+  data = df1, queries = qseq,
+  parallel = TRUE, cl = cl,
+  kthresh = 0.1
+)
 parallel::stopCluster(cl)
-fits <- as.numeric(unlist(lapply(nw_fit[[1]], function (fit) fit$coefs)))
-
-png("doppler_data_fit.png", width = 800, height = 800, res = 100)
+fitted_qseq <- as.numeric(unlist(lapply(fit[[1]], function(fit) fit$coefs)))
 mixedcurve::dark_mode()
 plot(x, y, main = "Nadaraya-Watson Kernel Regression of Doppler data",
      pch = 20, col = adjustcolor("yellow", 0.2), cex = 1.0)
-lines(queries, fits, col = adjustcolor("red", 1.0), lwd = 2)
+lines(qseq, fitted_qseq, col = adjustcolor("red", 1.0), lwd = 2)
 legend("topright", legend = c("Fit", "Raw Data"),
-lty = c(1, NA), pch = c(NA, 20), col = c("red", adjustcolor("yellow", 0.5)), bty = "n")
-invisible(dev.off())
+       lty = c(1, NA), pch = c(NA, 20),
+       col = c("red", adjustcolor("yellow", 0.5)), bty = "n")
 
-#
 ```
 
 <!-- }}} Fit NW model -->
 
-![Modified Doppler function data with Nadaraya-Watson fit](./doppler_data_fit.png){width=95%}
+## Perform WY Adjusted Test for mu(x) = 0
 
-#### TODO: add WY adjusted test
+We can also compute Westfall-Young adjusted p-values for the fitted model using
+the `wy_full` function (or the `wy_one_step` function). To do this, we feed an
+`alternative_hypothesis` into the `lpk` function for a function that generates
+the raw p-values curve `gen_pvals_fun`, and a function that provides a pivot permutation
+`gen_perm_fun` associated to that alternative_hypothesis. In this case, we can just 
+permute the `y` values.
+
+<!-- {{{ WY adjusted p-values  -->
+
+```{r, fig.filename="doppler_wy.png", fig.width=7, fig.height=10, out.width="98%", message=FALSE, warning=FALSE}
+
+cl <- parallel::makeCluster(parallel::detectCores() - 1)
+invisible(parallel::clusterEvalQ(cl, library(mixedcurve)))
+parallel::clusterExport(cl, varlist = c("df1", "bandwidth", "qseq"))
+wy_pvals <- mixedcurve::wy_full(
+  dataf = df1, xseq = qseq, nperm = 50,
+  gen_pvals_fun = function(data, xseq) {
+    lpk_res <- mixedcurve::lpk(
+      y ~ K_h(x), queries = xseq, data = data, degree = 0,
+      kernel = mixedcurve::box_kern,
+      h = bandwidth, parallel = FALSE,
+      alternative_hypothesis = y ~ K_h(x | -1),
+      kthresh = 0.1
+    )
+    as.numeric(do.call(cbind, lapply(lpk_res[[1]], function(elmt) {
+      elmt$pvals
+    })))
+  },
+  gen_perm_fun = function(data) {
+    data$y <- sample(data$y, replace = FALSE)
+    data
+  },
+  cl = cl
+)
+parallel::stopCluster(cl)
+mixedcurve::dark_mode()
+par(mfrow = c(2, 1))
+plot(df1$x, df1$y, main = "Nadaraya-Watson Kernel Regression of Doppler data",
+     pch = 20, col = adjustcolor("yellow", 0.2), cex = 1.0,
+     xlab = "x", ylab = "y")
+lines(qseq, fitted_qseq, col = adjustcolor("red", 1.0), lwd = 2)
+plot_pval_regions(qseq, wy_pvals, pthresh = 0.05)
+legend("topright", legend = c("Fit", "Raw Data"),
+       lty = c(1, NA), pch = c(NA, 20),
+       col = c("red", adjustcolor("yellow", 0.5)), bty = "n")
+plot(qseq, wy_pvals, type = "l",
+     main = "Westfall-Young Adjusted P-values",
+     xlab = "x", ylab = "Adjusted P-value",
+     col = adjustcolor("cyan", 1.0), lwd = 2)
+plot_pval_regions(qseq, wy_pvals, pthresh = 0.05)
+
+```
+
+<!-- }}} WY adjusted p-values  -->
+
+We see that there are many regions where the Westfall-Young adjusted p-values
+are below the 0.05 significance threshold, indicating that we can reject the null
+hypothesis that the mean function is equal to zero function. Further, we can see that
+the p-values are high for the many regions where the function is close to zero indicating
+regions where we do not have sufficient evidence to reject the null hypothesis.
+

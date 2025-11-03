@@ -1,12 +1,13 @@
 # TARGET := "gmc_1d"
-TARGET := "mc_1d"
+TARGET := "lpk_2d"
 
 open-vignette:
     @xdg-open ./doc/{{TARGET}}.html &
     clear
 
 open-single-vignette:
-    @xdg-open ./vignettes/{{TARGET}}/{{TARGET}}.html &
+    # @xdg-open ./vignettes/{{TARGET}}/{{TARGET}}.html &
+    @xdg-open ./inst/built_vignettes/{{TARGET}}.html &
     clear
 
 open-all-vignettes:

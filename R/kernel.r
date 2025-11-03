@@ -38,6 +38,22 @@ gauss_kern <- function(x) {
 
 # }}} gauss_kern
 
+
+box_kern <- function(x) {
+  if (is.vector(x)) {
+    x <- matrix(x, ncol = 1)
+  }
+  kernel_values <- apply(x, 1, function(row) {
+    if (all(abs(row) <= 0.5)) {
+      1
+    } else {
+      0
+    }
+  })
+  kernel_values
+}
+
+
 # {{{ k_h
 
 #' Scaled Gaussian kernel function

@@ -37,8 +37,8 @@ modifications to the Cuevas et al. M3 curve for this purpose.
 
 set.seed(300)
 ni <- 5
-nj <- 10
-nk <- 100
+nj <- 8
+nk <- 30
 ndim <- 1
 bounds <- lapply(seq_len(ndim), function(t) c(0, 1))
 df1 <- mixedcurve::gen_hfanova_data(
@@ -54,7 +54,6 @@ df1 <- mixedcurve::gen_hfanova_data(
 )
 color_values <- cut(df1$y, breaks = 100, labels = FALSE)
 colors <- viridis::viridis(100)
-png("ghmc_1d_poisson_data.png", width = 800, height = 800, res = 100)
 mixedcurve::dark_mode()
 plot(df1$x1, df1$y, col = adjustcolor(df1$grp2, 0.3), pch = 20,
      main = "Simulated Poisson Hierarchical Functional Data",
@@ -66,14 +65,11 @@ legend("topright",
        col = 1:5,
        pch = c(20),
 )
-invisible(dev.off())
 
 #
 ```
 
 <!-- }}} Simulate data -->
-
-![Functional Poisson data](./ghmc_1d_poisson_data.png){width=95%}
 
 Now, we can fit the generalized Nadaraya-Watson kernel regression model using
 the `lpk` function from the `mixedcurve` package. We will specify the
@@ -87,14 +83,14 @@ model across domain `x` with group 1 nested within group 2 random effects.
 
 
 # 4. Fit the generalized Nadaraya-Watson hierarchical mixed-curve model
-qseq <- seq(0.0, 1.0, length.out = 200)
+qseq <- seq(0.0, 1.0, length.out = 100)
 lpk1 <- mixedcurve::glpkme(y ~ K_h(x1) + (K_h(x1) | grp2 / grp1),
   family = "poisson",
   queries = qseq,
   data = df1,
   degree = 0,
   kernel = mixedcurve::gauss_kern,
-  h = 0.05,
+  h = 0.07,
   parallel = TRUE
 )
 indices <- c(t(matrix(seq(1, nj * ni), nrow = nj)))
@@ -120,7 +116,6 @@ feqrs <- do.call(rbind,
                         }))
 qrs <- apply(ind_effects + rep_effects, 2, function(col) col + feqrs)
 # 5. Plot the results
-png("ghmc_1d_poisson_fit.png", width = 800, height = 800, res = 100)
 mixedcurve::dark_mode()
 plot(df1$x, df1$y,
   col = adjustcolor(df1$grp2, 0.2),
@@ -143,16 +138,42 @@ legend("topright",
   pch = c(NA, NA, 20),
   lwd = c(6, 1, NA)
 )
-invisible(dev.off())
 
 #
 ```
 
 <!-- }}} Fit GNW model -->
 
-![Hierarchical Functional Poisson data with GHMC fit](./ghmc_1d_poisson_fit.png){width=95%}
 
-#### TODO: add WY adjusted test
+## W-Y adjusted test
 
 
+```{r}
+str(lpk1[[1]][[1]])
+cl <- parallel::makeCluster(parallel::detectCores() - 1)
+invisible(parallel::clusterEvalQ(cl, library(mixedcurve)))
+parallel::clusterExport(cl, varlist = c("df1", "qseq"))
+wy_pvals <- mixedcurve::wy_full(
+  dataf = df1, xseq = qseq, nperm = 100,
+  gen_pvals_fun = function(data, xseq) {
+    lpk_res <- mixedcurve::glpkme(
+      y ~ K_h(x1) + (K_h(x1) | grp2 / grp1),
+      queries = xseq, data = data, degree = 0,
+      kernel = mixedcurve::gauss_kern,
+      h = 0.07, family = "poisson", parallel = FALSE
+    )
+    as.numeric(lapply(lpk_res[[1]], function(elmt) {
+      elmt$pvals
+    }))
+  },
+  gen_perm_fun = function(data) {
+    data$y <- sample(data$y)
+    data
+  },
+  cl = cl
+)
+parallel::stopCluster(cl)
+
+
+```
 

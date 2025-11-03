@@ -854,7 +854,7 @@ gen_hfanova_data <- function(f, n, sigmas, bounds, ndim = 1,
     #' {{{ Sample x
     if (is.null(px) || is.null(pxargs)) {
       px <- runif
-      if (is.vector(bounds) && ndim != 1) {
+      if (!is.list(bounds) && ndim != 1) {
         stop("If bounds is a vector, ndim must be 1")
       }
       if (is.vector(bounds) && ndim == 1) {
