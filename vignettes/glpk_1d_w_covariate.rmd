@@ -31,7 +31,7 @@ modifications to the Cuevas et al. m3 curve for this purpose.
 
 <!-- {{{ Simulate data -->
 
-```{r, fig.filename="m2_data.png", fig.width=6, fig.height=6,  message=FALSE, warning=FALSE}
+```{r, fig.filename="m2_data.png", fig.width=6, fig.height=6, out.width= "78%", message=FALSE, warning=FALSE}
 
 # 1. Define the true curves (eta = log mu)
 tf <- function(t, i) {
@@ -41,9 +41,7 @@ n <- 2000
 set.seed(123)
 # 2. Simulate the data
 df1 <- mixedcurve::gen_hfanova_data(
-  f = function(t, i) {
-    5 * mixedcurve::m3(t, i)
-  },
+  f = tf,
   ngrp = 3,
   n = c(500, 1), sigmas = c(0.3, 0), bounds = c(0, 1),
   ndim = 1, px = NULL, pxargs = NULL,
@@ -77,7 +75,7 @@ indicate that we want to fit separate curves for each group.
 
 <!-- {{{ Fit GNW model -->
 
-```{r, fig.filename="m2_fit.png", fig.width=6, fig.height=6,  message=FALSE, warning=FALSE}
+```{r, fig.filename="m2_fit.png", fig.width=6, fig.height=6, out.width="78%", message=FALSE, warning=FALSE}
 
 # 4. Fit GNW kernel regression model (in parallel)
 qseq <- matrix(seq(0.0, 1.0, length.out = 200), ncol = 1)
@@ -89,7 +87,7 @@ glpk1 <- mixedcurve::glpk(y ~ K_h(x1 | cov),
   queries = qseq,
   data = df1,
   degree = 0,
-  kernel = mixedcurve::gauss_kern,
+  kernel = mixedcurve::box_kern,
   family = "poisson",
   h = bandwidth,
   parallel = TRUE,
@@ -145,8 +143,11 @@ wy_pvals <- mixedcurve::wy_full(
   dataf = df1, xseq = qseq, nperm = 100,
   gen_pvals_fun = function(data, xseq) {
     lpk_res <- mixedcurve::lpk(
-      y ~ K_h(x1 | cov), queries = xseq, data = data, degree = 0,
-      kernel = mixedcurve::gauss_kern,
+      y ~ K_h(x1 | cov),
+      alternative_hypothesis = y ~ K_h(x1 | -1),
+      queries = xseq, data = data, degree = 0,
+      kernel = mixedcurve::box_kern,
+      kthresh = 0.1,
       h = bandwidth, parallel = FALSE
     )
     as.numeric(do.call(cbind, lapply(lpk_res[[1]], function(elmt) {
@@ -160,7 +161,6 @@ wy_pvals <- mixedcurve::wy_full(
   cl = cl
 )
 parallel::stopCluster(cl)
-
 par(mfrow = c(2, 1))
 mixedcurve::dark_mode()
 plot(df1$x1, df1$y, main = "Nadaraya-Watson Kernel Regression of M2 data",

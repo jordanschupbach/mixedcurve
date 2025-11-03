@@ -1,5 +1,5 @@
 # TARGET := "gmc_1d"
-TARGET := "glpk_2d"
+TARGET := "glpk_1d_w_covariate"
 
 open-vignette:
     @xdg-open ./doc/{{TARGET}}.html &
