@@ -31,7 +31,7 @@ modifications to the Cuevas et al. m3 curve for this purpose.
 
 <!-- {{{ Simulate data -->
 
-```{r, fig.filename="m2_data.png", fig.width=6, fig.height=6, out.width= "78%", message=FALSE, warning=FALSE}
+```{r, fig.filename="m3_data.png", fig.width=6, fig.height=6, out.width= "78%", message=FALSE, warning=FALSE}
 
 # 1. Define the true curves (eta = log mu)
 tf <- function(t, i) {
@@ -70,8 +70,8 @@ legend("topright",
 
 Now, we can fit the generalized Nadaraya-Watson kernel regression model using
 the `lpk` function from the `mixedcurve` package. We will specify the
-bandwidth, kernel type, degree, and use the formula `y ~ K_h(x1 | grp)` to
-indicate that we want to fit separate curves for each group.
+bandwidth, kernel type, degree, and use the formula `y ~ K_h(x1 | cov)` to
+indicate that we want to fit separate curves for each level of the covariate `cov`.
 
 <!-- {{{ Fit GNW model -->
 
