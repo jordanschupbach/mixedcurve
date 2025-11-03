@@ -268,10 +268,21 @@ lpkme_query <- function(formula,
                         data,
                         degree = 0,
                         kernel = mixedcurve::gauss_kern,
-                        h) {
+                        h,
+                        alternative_hypothesis = NULL,
+                        kthresh = 0) {
+  pvals <- NULL
   kernel <- mixedcurve::gauss_kern
   lme4_form <- as.formula(mixedcurve::kernel_to_lme4_formula(formula))
-  lme4_drop_form <- as.formula(mixedcurve::kern_to_lme4_drop_grp(formula))
+  # lme4_drop_form <- as.formula(mixedcurve::kern_to_lme4_drop_grp(formula))
+  w <- as.numeric(mixedcurve::lm_kernel_weights(
+    formula,
+    data = data,
+    bwidth = h,
+    query = query
+  ))
+  data$w <- w
+  data <- data[which(data$w > kthresh), ]
   parse_terms <- mixedcurve::parse_terms(as.formula(formula))
   domain_cols <- parse_terms[parse_terms$type == "kernel fixed effect", ]$lhs
   domain_cols <- unlist(strsplit(gsub("\\s+", "", domain_cols), "\\*"))
@@ -286,18 +297,27 @@ lpkme_query <- function(formula,
     data = data,
     weights = w
   )
-  lme_fit2 <- lme4::lmer(
-    lme4_drop_form,
-    data = data,
-    weights = w
-  )
-  pval <- anova(lm_fit2, lme_fit)
+  if (!is.null(alternative_hypothesis)) {
+    lm2 <- lme4::lmer(
+      as.formula(mixedcurve::kernel_to_lme4_formula(alternative_hypothesis)),
+      data = data,
+      weights = w
+    )
+    pvals <- anova(lm1, lm2)$Pr
+    pvals <- pvals[!is.na(pvals)]
+  }
+  # lme_fit2 <- lme4::lmer(
+  #   lme4_drop_form,
+  #   data = data,
+  #   weights = w
+  # )
+  # pval <- anova(lm_fit2, lme_fit)
   list(
     query = query,
     coefs = coef(lm_fit),
     fixefs = lme4::fixef(lm_fit),
     ranefs = lme4::ranef(lm_fit),
-    pval = pval
+    pval = pvals
   )
 }
 
@@ -307,7 +327,9 @@ lpkme <- function(formula,
                   h,
                   degree = 0,
                   kernel = mixedcurve::gauss_kern,
-                  parallel = TRUE, cl = NULL) {
+                  parallel = TRUE,
+                  kthresh = 0,
+                  cl = NULL) {
   # TODO: enforce that formula has random effect kernel terms
   if (is.matrix(queries)) {
     tqueries <- split(queries, seq_len(nrow(queries)))
@@ -330,7 +352,8 @@ lpkme <- function(formula,
           data = datas,
           degree = degree,
           kernel = kernel,
-          h = h
+          h = h,
+          kthresh = kthresh
         )
       }, cl = cl, datas = data)
       on.exit(parallel::stopCluster(cl))
@@ -342,7 +365,8 @@ lpkme <- function(formula,
         data = data,
         degree = degree,
         kernel = kernel,
-        h = h
+        h = h,
+        kthresh = kthresh
       )
     }, cl = cl)
   } else {
@@ -353,7 +377,8 @@ lpkme <- function(formula,
         data = data,
         degree = degree,
         kernel = kernel,
-        h = h
+        h = h,
+        kthresh = kthresh
       )
     })
   }

@@ -174,14 +174,14 @@ parallel::clusterExport(cl, varlist = c("df1", "bandwidth", "qseq"))
 wy_pvals <- mixedcurve::wy_full(
   dataf = df1, xseq = qseq, nperm = 50,
   gen_pvals_fun = function(data, xseq) {
-    lpk_res <- mixedcurve::lpk(
+    glpk_res <- mixedcurve::glpk(
       y ~ K_h(x1 * x2 | cov), queries = xseq, data = data, degree = 0,
       kernel = mixedcurve::box_kern,
       h = bandwidth, parallel = FALSE,
       alternative_hypothesis = y ~ K_h(x1 * x2),
       kthresh = 0.1
     )
-    as.numeric(do.call(cbind, lapply(lpk_res[[1]], function(elmt) {
+    as.numeric(do.call(cbind, lapply(glpk_res[[1]], function(elmt) {
       elmt$pvals
     })))
   },

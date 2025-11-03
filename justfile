@@ -1,5 +1,5 @@
 # TARGET := "gmc_1d"
-TARGET := "lpk_1d_w_covariate"
+TARGET := "lpk_2d_w_covariate"
 
 open-vignette:
     @xdg-open ./doc/{{TARGET}}.html &
@@ -11,7 +11,7 @@ open-single-vignette:
     clear
 
 open-all-vignettes:
-  for file in ./doc/*.html; do \
+  for file in ./inst/built_vignettes/*.html; do \
       xdg-open "$file" & \
   done
   clear
