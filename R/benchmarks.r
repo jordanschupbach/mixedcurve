@@ -140,13 +140,13 @@ m1_1d <- function(t, i) {
 
 m1 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
-    shift_and_rotate(m1_1d, dim = ncol(t))(t, i)
+    shift_and_rotate(mixedcurve::m1_1d, dim = ncol(t))(t, i)
   } else if (is.matrix(t) && ncol(t) == 1) {
-    m1_1d(as.vector(t), i)
+    mixedcurve::m1_1d(as.vector(t), i)
   } else if (is.data.frame(t)) {
-    shift_and_rotate(m1_1d, dim = ncol(t))(as.matrix(t), i)
+    shift_and_rotate(mixedcurve::m1_1d, dim = ncol(t))(as.matrix(t), i)
   } else if (is.vector(t) && !is.list(t)) {
-    m1_1d(t, i)
+    mixedcurve::m1_1d(t, i)
   } else {
     stop("t must be a matrix or vector")
   }
@@ -174,13 +174,13 @@ m2_1d <- function(t, i) {
 
 m2 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
-    shift_and_rotate(m2_1d, dim = ncol(t))(t, i)
+    shift_and_rotate(mixedcurve::m2_1d, dim = ncol(t))(t, i)
   } else if (is.matrix(t) && ncol(t) == 1) {
-    m2_1d(as.vector(t), i)
+    mixedcurve::m2_1d(as.vector(t), i)
   } else if (is.data.frame(t)) {
-    shift_and_rotate(m2_1d, dim = ncol(t))(as.matrix(t), i)
+    shift_and_rotate(mixedcurve::m2_1d, dim = ncol(t))(as.matrix(t), i)
   } else if (is.vector(t) && !is.list(t)) {
-    m2_1d(t, i)
+    mixedcurve::m2_1d(t, i)
   } else {
     stop("t must be a matrix or vector")
   }
@@ -207,13 +207,13 @@ m3_1d <- function(t, i) {
 }
 m3 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
-    shift_and_rotate(m3_1d, dim = ncol(t))(t, i)
+    shift_and_rotate(mixedcurve::m3_1d, dim = ncol(t))(t, i)
   } else if (is.matrix(t) && ncol(t) == 1) {
-    m3_1d(as.vector(t), i)
+    mixedcurve::m3_1d(as.vector(t), i)
   } else if (is.data.frame(t)) {
-    shift_and_rotate(m3_1d, dim = ncol(t))(as.matrix(t), i)
+    shift_and_rotate(mixedcurve::m3_1d, dim = ncol(t))(as.matrix(t), i)
   } else if (is.vector(t) && !is.list(t)) {
-    m3_1d(t, i)
+    mixedcurve::m3_1d(t, i)
   } else {
     stop("t must be a matrix or vector")
   }
@@ -240,13 +240,13 @@ m4_1d <- function(t, i) {
 }
 m4 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
-    shift_and_rotate(m4_1d, dim = ncol(t))(t, i)
+    shift_and_rotate(mixedcurve::m4_1d, dim = ncol(t))(t, i)
   } else if (is.matrix(t) && ncol(t) == 1) {
-    m4_1d(as.vector(t), i)
+    mixedcurve::m4_1d(as.vector(t), i)
   } else if (is.data.frame(t)) {
-    shift_and_rotate(m4_1d, dim = ncol(t))(as.matrix(t), i)
+    shift_and_rotate(mixedcurve::m4_1d, dim = ncol(t))(as.matrix(t), i)
   } else if (is.vector(t) && !is.list(t)) {
-    m4_1d(t, i)
+    mmixedcurve::4_1d(t, i)
   } else {
     stop("t must be a matrix or vector")
   }
@@ -273,13 +273,13 @@ m4 <- function(t, i) {
 #' }
 m5 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
-    shift_and_rotate(m5_1d, dim = ncol(t))(t, i)
+    shift_and_rotate(mixedcurve::m5_1d, dim = ncol(t))(t, i)
   } else if (is.matrix(t) && ncol(t) == 1) {
-    m5_1d(as.vector(t), i)
+    mixedcurve::m5_1d(as.vector(t), i)
   } else if (is.data.frame(t)) {
-    shift_and_rotate(m5_1d, dim = ncol(t))(as.matrix(t), i)
+    shift_and_rotate(mixedcurve::m5_1d, dim = ncol(t))(as.matrix(t), i)
   } else if (is.vector(t) && !is.list(t)) {
-    m5_1d(t, i)
+    mixedcurve::m5_1d(t, i)
   } else {
     stop("t must be a matrix or vector")
   }
