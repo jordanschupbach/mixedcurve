@@ -14,7 +14,7 @@ for installation. Default is "http://cran.us.r-project.org".}
 }
 \value{
 None. The function is called for its side effects of installing
-              and loading the package.
+and loading the package.
 }
 \description{
 This function checks if a specified R package is installed.

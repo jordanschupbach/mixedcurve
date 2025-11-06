@@ -7,7 +7,7 @@
 m5(t, i)
 }
 \arguments{
-\item{t}{A numeric vector of points in [0, 1]}
+\item{t}{A numeric vector of points in \link{0, 1}}
 
 \item{i}{An integer in {1, 2, 3} (technically any i works)}
 }

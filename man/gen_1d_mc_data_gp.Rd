@@ -4,7 +4,7 @@
 \alias{gen_1d_mc_data_gp}
 \title{n <- ni * nj * nk
 list_m <- lapply(1:ngroups, function(i) {
-  function(t) m(t, i)
+function(t) m(t, i)
 })}
 \usage{
 gen_1d_mc_data_gp(
@@ -25,6 +25,6 @@ gen_1d_mc_data_gp(
 \description{
 n <- ni * nj * nk
 list_m <- lapply(1:ngroups, function(i) {
-  function(t) m(t, i)
+function(t) m(t, i)
 })
 }

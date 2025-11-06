@@ -7,11 +7,17 @@
 gen_perm_fanova(dataf, grp_col = "grp", id_col = "id")
 }
 \arguments{
-\item{dataf}{- data frame with columns x, y, grp, id}
+\item{dataf}{\itemize{
+\item data frame with columns x, y, grp, id
+}}
 
-\item{grp_col}{- name of the group column}
+\item{grp_col}{\itemize{
+\item name of the group column
+}}
 
-\item{id_col}{- name of the subject ID column}
+\item{id_col}{\itemize{
+\item name of the subject ID column
+}}
 }
 \value{
 A permuted data frame with the same structure as input

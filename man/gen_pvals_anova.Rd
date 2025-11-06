@@ -7,9 +7,13 @@
 gen_pvals_anova(dataf, xseq)
 }
 \arguments{
-\item{dataf}{- data frame with columns x, y, grp, id}
+\item{dataf}{\itemize{
+\item data frame with columns x, y, grp, id
+}}
 
-\item{xseq}{- sequence of x values to test}
+\item{xseq}{\itemize{
+\item sequence of x values to test
+}}
 }
 \value{
 A numeric vector of p-values corresponding to each x in xseq

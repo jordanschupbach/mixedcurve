@@ -7,13 +7,21 @@
 \method{plot}{pp}(pp, main = "Density of X", tick_col = "black", ...)
 }
 \arguments{
-\item{pp}{- the pp to plot}
+\item{pp}{\itemize{
+\item the pp to plot
+}}
 
-\item{main}{- main title of plot}
+\item{main}{\itemize{
+\item main title of plot
+}}
 
-\item{tick_col}{- color of tick marks}
+\item{tick_col}{\itemize{
+\item color of tick marks
+}}
 
-\item{...}{- parms passed to base plot()}
+\item{...}{\itemize{
+\item parms passed to base plot()
+}}
 }
 \description{
 plot a pp object

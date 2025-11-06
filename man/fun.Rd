@@ -7,9 +7,13 @@
 fun(lambda, dom)
 }
 \arguments{
-\item{lambda}{- a function object}
+\item{lambda}{\itemize{
+\item a function object
+}}
 
-\item{dom}{- domain of the function}
+\item{dom}{\itemize{
+\item domain of the function
+}}
 }
 \description{
 A function class

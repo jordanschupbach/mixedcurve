@@ -7,15 +7,25 @@
 \method{plot}{fun}(lambda, dom = NULL, evals = 1000, add = FALSE, ...)
 }
 \arguments{
-\item{lambda}{- a fun object}
+\item{lambda}{\itemize{
+\item a fun object
+}}
 
-\item{dom}{- domain to plot over (defaults to lambda$dom)}
+\item{dom}{\itemize{
+\item domain to plot over (defaults to lambda$dom)
+}}
 
-\item{evals}{- number of evaluation points}
+\item{evals}{\itemize{
+\item number of evaluation points
+}}
 
-\item{add}{- whether to add to existing plot}
+\item{add}{\itemize{
+\item whether to add to existing plot
+}}
 
-\item{...}{- additional arguments to plot()}
+\item{...}{\itemize{
+\item additional arguments to plot()
+}}
 }
 \description{
 Plot method for fun objects

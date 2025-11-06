@@ -7,17 +7,27 @@
 wy_one_step(dataf, xseq, nperm, gen_pvals_fun, gen_perm_fun, cl = NULL)
 }
 \arguments{
-\item{dataf}{- data frame with columns x, y, grp, id}
+\item{dataf}{\itemize{
+\item data frame with columns x, y, grp, id
+}}
 
-\item{xseq}{- sequence of x values to test}
+\item{xseq}{\itemize{
+\item sequence of x values to test
+}}
 
-\item{nperm}{- number of permutations}
+\item{nperm}{\itemize{
+\item number of permutations
+}}
 
-\item{gen_pvals_fun}{- function to generate p-values,
-takes dataf and xseq as arguments}
+\item{gen_pvals_fun}{\itemize{
+\item function to generate p-values,
+takes dataf and xseq as arguments
+}}
 
-\item{gen_perm_fun}{- function to generate a permutation
-of the data, takes dataf as argument}
+\item{gen_perm_fun}{\itemize{
+\item function to generate a permutation
+of the data, takes dataf as argument
+}}
 }
 \description{
 Westfall-Young (Cox-Lee) one-step method

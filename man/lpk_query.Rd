@@ -2,25 +2,34 @@
 % Please edit documentation in R/lpk.r
 \name{lpk_query}
 \alias{lpk_query}
-\title{Local polynomial Kernel regression}
+\title{Generalized Local polynomial Kernel regression query}
 \usage{
-lpk_query(formula, query, data, degree = 0, kernel = mixedcurve::gauss_kern, h)
+lpk_query(
+  formula,
+  query,
+  h,
+  data,
+  degree = 0,
+  kernel = mixedcurve::gauss_kern,
+  alternative_hypothesis = NULL,
+  kthresh = 0
+)
 }
 \arguments{
 \item{formula}{A formula object specifying the model to be fitted of
 the form y ~ K_h(x | grp) or  y ~ K_h(x) depending on
 whether a grouping variable is present.}
 
+\item{h}{A positive numeric value representing the bandwidth for the kernel.}
+
 \item{data}{A data frame containing the variables in the formula.}
 
 \item{degree}{An integer specifying the degree of the local polynomial
 (default is 0 for Nadaraya-Watson estimator).}
 
-\item{h}{A positive numeric value representing the bandwidth for the kernel.}
-
 \item{queries}{A numeric vector of points at which to evaluate the fitted
 values.}
 }
 \description{
-Local polynomial Kernel regression
+Generalized Local polynomial Kernel regression query
 }

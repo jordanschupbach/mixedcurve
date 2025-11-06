@@ -8,10 +8,12 @@ lpk(
   formula,
   queries,
   data,
+  h,
   degree = 0,
   kernel = mixedcurve::gauss_kern,
-  h,
   parallel = TRUE,
+  alternative_hypothesis = NULL,
+  kthresh = 0,
   cl = NULL
 )
 }

@@ -8,7 +8,7 @@ dark_mode()
 }
 \value{
 None. The function is called for its side effects of
-              changing graphical parameters.
+changing graphical parameters.
 }
 \description{
 This function customizes the graphical parameters in R to

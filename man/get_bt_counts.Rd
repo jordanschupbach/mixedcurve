@@ -7,9 +7,13 @@
 get_bt_counts(frame, cells = 100)
 }
 \arguments{
-\item{frame}{- a pp object to construct fine-pixel counts}
+\item{frame}{\itemize{
+\item a pp object to construct fine-pixel counts
+}}
 
-\item{cells}{- number of cells in fine-pixel approx}
+\item{cells}{\itemize{
+\item number of cells in fine-pixel approx
+}}
 }
 \description{
 Gets centroids and counts for a fine-pixel approximation

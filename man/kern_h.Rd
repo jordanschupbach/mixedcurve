@@ -4,7 +4,7 @@
 \alias{kern_h}
 \title{Scaled Gaussian kernel function}
 \usage{
-kern_h(x, h, kern = gauss_kern)
+kern_h(x, h, kernel_fun = gauss_kern)
 }
 \arguments{
 \item{x}{A numeric value or vector for which to compute
@@ -15,7 +15,7 @@ bandwidth.}
 }
 \value{
 The scaled Gaussian kernel value(s) corresponding
-        to the input and bandwidth.
+to the input and bandwidth.
 }
 \description{
 This function computes the scaled Gaussian kernel value

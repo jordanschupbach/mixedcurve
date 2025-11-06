@@ -139,6 +139,20 @@ m1_1d <- function(t, i) {
   t * (1 - t)
 }
 
+
+#' Functions m1 to m5 as defined in Cuevas et al. (2004)
+#' @param t A numeric vector of points in [0, 1]
+#' @param i An integer in {1, 2, 3} (technically any i works)
+#' @return A numeric vector of the same length as t
+#' @export
+#' @examples
+#' x <- seq(0, 1, length.out = 100)
+#' plot(x, mixedcurve::m3(x, 1), type = "l", xlab = "t",
+#'      ylab = "m3(t, i)", main = "Cuevas: m3(t, i)")
+#' lines(x, mixedcurve::m3(x, 2), col = 2)
+#' lines(x, mixedcurve::m3(x, 3), col = 3)
+#' legend("topright", legend = c("m3(t, 1)", "m3(t, 2)", "m3(t, 3)"),
+#'        col = 1:3, lty = 1)
 m1 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
     shift_and_rotate(mixedcurve::m1_1d, dim = ncol(t))(t, i)
@@ -174,6 +188,20 @@ m2_1d <- function(t, i) {
   t^i * (1 - t)^(6 - i)
 }
 
+
+#' Functions m1 to m5 as defined in Cuevas et al. (2004)
+#' @param t A numeric vector of points in [0, 1]
+#' @param i An integer in {1, 2, 3} (technically any i works)
+#' @return A numeric vector of the same length as t
+#' @export
+#' @examples
+#' x <- seq(0, 1, length.out = 100)
+#' plot(x, mixedcurve::m3(x, 1), type = "l", xlab = "t",
+#'      ylab = "m3(t, i)", main = "Cuevas: m3(t, i)")
+#' lines(x, mixedcurve::m3(x, 2), col = 2)
+#' lines(x, mixedcurve::m3(x, 3), col = 3)
+#' legend("topright", legend = c("m3(t, 1)", "m3(t, 2)", "m3(t, 3)"),
+#'        col = 1:3, lty = 1)
 m2 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
     shift_and_rotate(mixedcurve::m2_1d, dim = ncol(t))(t, i)
@@ -208,6 +236,21 @@ m2 <- function(t, i) {
 m3_1d <- function(t, i) {
   t^(i / 5) * (1 - t)^(6 - i / 5)
 }
+
+
+#' Functions m1 to m5 as defined in Cuevas et al. (2004)
+#' @param t A numeric vector of points in [0, 1]
+#' @param i An integer in {1, 2, 3} (technically any i works)
+#' @return A numeric vector of the same length as t
+#' @export
+#' @examples
+#' x <- seq(0, 1, length.out = 100)
+#' plot(x, mixedcurve::m3(x, 1), type = "l", xlab = "t",
+#'      ylab = "m3(t, i)", main = "Cuevas: m3(t, i)")
+#' lines(x, mixedcurve::m3(x, 2), col = 2)
+#' lines(x, mixedcurve::m3(x, 3), col = 3)
+#' legend("topright", legend = c("m3(t, 1)", "m3(t, 2)", "m3(t, 3)"),
+#'        col = 1:3, lty = 1)
 m3 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
     shift_and_rotate(mixedcurve::m3_1d, dim = ncol(t))(t, i)
@@ -242,6 +285,19 @@ m3 <- function(t, i) {
 m4_1d <- function(t, i) {
   rep(1 + i / 50, length(t))
 }
+
+#' Functions m1 to m5 as defined in Cuevas et al. (2004)
+#' @param t A numeric vector of points in [0, 1]
+#' @param i An integer in {1, 2, 3} (technically any i works)
+#' @return A numeric vector of the same length as t
+#' @export
+#' @examples
+#' x <- seq(0, 1, length.out = 100)
+#' plot(x, mixedcurve::m4(x, 1), type = "l", xlab = "t",
+#'      ylab = "m4(t, i)", main = "Cuevas: m4(t, i)")
+#' lines(x, mixedcurve::m4(x, 2), col = 2)
+#' lines(x, mixedcurve::m4(x, 3), col = 3)
+#' legend("topright", legend = c("m4(t, 1)", "m4(t, 2)", "m4(t, 3)"),
 m4 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
     shift_and_rotate(mixedcurve::m4_1d, dim = ncol(t))(t, i)

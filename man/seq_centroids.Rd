@@ -7,11 +7,17 @@
 seq_centroids(from, to, length.out)
 }
 \arguments{
-\item{from}{- left endpoint}
+\item{from}{\itemize{
+\item left endpoint
+}}
 
-\item{to}{- right endpoint}
+\item{to}{\itemize{
+\item right endpoint
+}}
 
-\item{length.out}{- length of returned centroids}
+\item{length.out}{\itemize{
+\item length of returned centroids
+}}
 }
 \description{
 Creates a fixed-width sequence and returns centroids in the sequence

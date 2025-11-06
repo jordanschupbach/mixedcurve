@@ -17,7 +17,7 @@ domain of the function (default is c(0, 1)).}
 }
 \value{
 A new function that takes a numeric matrix as input and returns
-        a numeric vector as output.
+a numeric vector as output.
 }
 \description{
 This function takes a 1D function and returns a new function that

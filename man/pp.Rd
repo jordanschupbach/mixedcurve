@@ -7,11 +7,17 @@
 pp(points, win, covs)
 }
 \arguments{
-\item{points}{- a pointset data.frame() object}
+\item{points}{\itemize{
+\item a pointset data.frame() object
+}}
 
-\item{win}{- a list of endpoints giving window}
+\item{win}{\itemize{
+\item a list of endpoints giving window
+}}
 
-\item{covs}{- covariates associated to the pointset}
+\item{covs}{\itemize{
+\item covariates associated to the pointset
+}}
 }
 \description{
 A general datastructure for ppps

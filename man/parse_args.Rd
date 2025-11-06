@@ -17,7 +17,7 @@ and converted to the appropriate type (logical, numeric, or character).
 }
 \description{
 This function parses command line arguments passed to an R script.
-It extracts arguments specified in the format `--arg_name value` and
+It extracts arguments specified in the format \verb{--arg_name value} and
 returns them as a named list. The function automatically determines
 the type of each argument (logical, numeric, or character).
 }

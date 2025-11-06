@@ -7,7 +7,9 @@
 rppp_f(fun)
 }
 \arguments{
-\item{fun}{- a fun object whose function is the intensity}
+\item{fun}{\itemize{
+\item a fun object whose function is the intensity
+}}
 }
 \description{
 Uses method of (TODO: source method for ihppp)

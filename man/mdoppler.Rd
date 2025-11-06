@@ -4,10 +4,10 @@
 \alias{mdoppler}
 \title{Modified doppler function (generalized to any dim)}
 \usage{
-mdoppler(x, alpha = 20, beta = 0.25)
+mdoppler(x, i = 0, alpha = 20, beta = 0.25)
 }
 \arguments{
-\item{x}{A numeric matrix of points in [0, 1]^d or a numeric vector in [0, 1]}
+\item{x}{A numeric matrix of points in \link{0, 1}^d or a numeric vector in \link{0, 1}}
 
 \item{alpha}{A numeric value controlling the frequency
 of oscillations (default is 20)}
@@ -17,7 +17,7 @@ the function (default is 0.25)}
 }
 \value{
 A numeric vector of the same length as the number
-        of rows in x (if x is a matrix)
+of rows in x (if x is a matrix)
 or the same length as x (if x is a vector)
 }
 \description{

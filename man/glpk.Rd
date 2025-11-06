@@ -13,7 +13,8 @@ glpk(
   kernel = mixedcurve::gauss_kern,
   family = "gaussian",
   parallel = TRUE,
-  cl = NULL
+  cl = NULL,
+  kthresh = 0
 )
 }
 \description{

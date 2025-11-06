@@ -57,14 +57,14 @@ Default is 1000.}
 }
 \value{
 A fundata class object (list) containing:
-        - df: A data frame with columns for the function values (y),
-              group identifiers (grp), sample identifiers (id),
-              and input points (x1, x2, ..., xd).
-        - coreset: A data frame containing one representative point
-                    from each sample.
-        - dims: An integer specifying the number of dimensions.
-        - nx: An integer specifying the number of points per function.
-        - systematic: A logical indicating whether the points
+- df: A data frame with columns for the function values (y),
+group identifiers (grp), sample identifiers (id),
+and input points (x1, x2, ..., xd).
+- coreset: A data frame containing one representative point
+from each sample.
+- dims: An integer specifying the number of dimensions.
+- nx: An integer specifying the number of points per function.
+- systematic: A logical indicating whether the points
 }
 \description{
 This function generates synthetic functional data for functional ANOVA

@@ -7,7 +7,9 @@
 \method{as.data.frame}{pp}(pp)
 }
 \arguments{
-\item{pp}{- pp object}
+\item{pp}{\itemize{
+\item pp object
+}}
 }
 \description{
 coerce a pp object into a dataframe (loses all but point info)

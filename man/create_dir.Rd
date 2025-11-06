@@ -12,7 +12,7 @@ to be created.}
 }
 \value{
 None. The function is called for its side effects of
-              creating a directory.
+creating a directory.
 }
 \description{
 This function creates a directory if it does not already exist.
