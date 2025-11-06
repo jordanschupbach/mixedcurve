@@ -1,2 +1,2 @@
-library(colorout)
-options(browser = "qutebrowser")
+# library(colorout)
+# options(browser = "qutebrowser")

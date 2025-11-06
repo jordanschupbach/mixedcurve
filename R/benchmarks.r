@@ -332,6 +332,26 @@ m4 <- function(t, i) {
 #' m5_1d <- function(t, i) {
 #'   (i - 1) * 0.01 * dbeta(t, 6, 6)
 #' }
+m5_1d <- function(t, i) {
+  (i - 1) * 0.01 * dbeta(t, 6, 6)
+}
+
+#' Functions m1 to m5 as defined in Cuevas et al. (2004)
+#' @param t A numeric vector of points in [0, 1]
+#' @param i An integer in {1, 2, 3} (technically any i works)
+#' @return A numeric vector of the same length as t
+#' @export
+#' @examples
+#' x <- seq(0, 1, length.out = 100)
+#' plot(x, mixedcurve::m5(x, 1), type = "l", xlab = "t",
+#'      ylab = "m5(t, i)", main = "Cuevas: m5(t, i)", ylim = c(0, 0.1))
+#' lines(x, mixedcurve::m5(x, 2), col = 2)
+#' lines(x, mixedcurve::m5(x, 3), col = 3)
+#' legend("topright", legend = c("m5(t,1)", "m5(t,2)", "m5(t,3)"),
+#'        col = 1:3, lty = 1)
+#' m5_1d <- function(t, i) {
+#'   (i - 1) * 0.01 * dbeta(t, 6, 6)
+#' }
 m5 <- function(t, i) {
   if (is.matrix(t) && ncol(t) > 1) {
     shift_and_rotate(mixedcurve::m5_1d, dim = ncol(t))(t, i)
