@@ -126,6 +126,7 @@ mdoppler <- function(x, i = 0, alpha = 20, beta = 0.25) { # add dom
 #' @param t A numeric vector of points in [0, 1]
 #' @param i An integer in {1, 2, 3} (technically any i works)
 #' @return A numeric vector of the same length as t
+#' @export
 #' @examples
 #' x <- seq(0, 1, length.out = 100)
 #' plot(x, mixedcurve::m1(x, 1), type = "l", xlab = "t",
@@ -160,6 +161,7 @@ m1 <- function(t, i) {
 #' @param t A numeric vector of points in [0, 1]
 #' @param i An integer in {1, 2, 3} (technically any i works)
 #' @return A numeric vector of the same length as t
+#' @export
 #' @examples
 #' x <- seq(0, 1, length.out = 100)
 #' plot(x, mixedcurve::m2(x, 1), type = "l", xlab = "t",
@@ -194,6 +196,7 @@ m2 <- function(t, i) {
 #' @param t A numeric vector of points in [0, 1]
 #' @param i An integer in {1, 2, 3} (technically any i works)
 #' @return A numeric vector of the same length as t
+#' @export
 #' @examples
 #' x <- seq(0, 1, length.out = 100)
 #' plot(x, mixedcurve::m3(x, 1), type = "l", xlab = "t",
@@ -227,6 +230,7 @@ m3 <- function(t, i) {
 #' @param t A numeric vector of points in [0, 1]
 #' @param i An integer in {1, 2, 3} (technically any i works)
 #' @return A numeric vector of the same length as t
+#' @export
 #' @examples
 #' x <- seq(0, 1, length.out = 100)
 #' plot(x, mixedcurve::m4(x, 1), type = "l", xlab = "t",
@@ -260,6 +264,7 @@ m4 <- function(t, i) {
 #' @param t A numeric vector of points in [0, 1]
 #' @param i An integer in {1, 2, 3} (technically any i works)
 #' @return A numeric vector of the same length as t
+#' @export
 #' @examples
 #' x <- seq(0, 1, length.out = 100)
 #' plot(x, mixedcurve::m5(x, 1), type = "l", xlab = "t",
