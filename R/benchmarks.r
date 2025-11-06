@@ -246,7 +246,7 @@ m4 <- function(t, i) {
   } else if (is.data.frame(t)) {
     shift_and_rotate(mixedcurve::m4_1d, dim = ncol(t))(as.matrix(t), i)
   } else if (is.vector(t) && !is.list(t)) {
-    mmixedcurve::4_1d(t, i)
+    mixedcurve::m4_1d(t, i)
   } else {
     stop("t must be a matrix or vector")
   }
