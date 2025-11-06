@@ -391,26 +391,32 @@ lpkme <- function(formula,
 # {{{ glpkme
 
 glpkme_query <- function(formula,
-                        query,
-                        data,
-                        degree = 0,
-                        kernel = mixedcurve::gauss_kern,
-                        h, family = "poisson") {
-  # data <- df1
-  # df1$rep <- as.factor(rep(rep(1:20, each = 15), times = 15))
-  # df1 <- data
-  # nrow(df1)
-  # formula <- y ~ K_h(x) + (K_h(x) | id/ rep)
-  # query <- 0.2
-  # h <- 0.20
-  # family <- "poisson"
+  query,
+  data,
+  degree = 0,
+  kernel = mixedcurve::gauss_kern,
+  h, family = "gaussian",
+  alternative_hypothesis = NULL,
+  kthresh = 1e-8
+) {
+  pvals <- NULL
+  w <- as.numeric(mixedcurve::lm_kernel_weights(
+    formula,
+    data = data,
+    bwidth = h,
+    query = query
+  ))
+  data$w <- w
+  data <- data[which(data$w > kthresh), ]
   kernel <- mixedcurve::gauss_kern
   lme4_form <- as.formula(mixedcurve::kernel_to_lme4_formula(formula))
+  # TODO: clean this up
   parse_terms <- mixedcurve::parse_terms(as.formula(formula))
-  domain_cols <- parse_terms[parse_terms$type == "kernel fixed effect",]$lhs
+  domain_cols <- parse_terms[parse_terms$type == "kernel fixed effect", ]$lhs
   domain_cols <- unlist(strsplit(gsub("\\s+", "", domain_cols), "\\*"))
   domain_cols <- domain_cols[domain_cols != ""]
-  weights <- mixedcurve::kern_ih(pt = as.matrix(data[,domain_cols, drop = FALSE]),
+  weights <- mixedcurve::kern_ih(pt = as.matrix(data[, domain_cols,
+                                                     drop = FALSE]),
                                  qry = query, h = h, kernel_fun = kernel)
   data$w <- weights
   glm_fit <- lme4::glmer(
@@ -419,23 +425,51 @@ glpkme_query <- function(formula,
     weights = w,
     family = family
   )
-  list(
-    query = query,
-    coefs = coef(glm_fit),
-    fixefs = lme4::fixef(glm_fit),
-    ranefs = lme4::ranef(glm_fit)
-  )
+  if (!is.null(alternative_hypothesis)) {
+    glm2 <- lme4::glmer(
+      as.formula(mixedcurve::kernel_to_lme4_formula(alternative_hypothesis)),
+      data = data,
+      weights = w,
+      family = family
+    )
+    pvals <- anova(glm_fit, glm2)$Pr
+    pvals <- pvals[!is.na(pvals)]
+  }
+  if (!is.null(alternative_hypothesis)) {
+    list(
+      query = query,
+      coefs = coef(glm_fit),
+      fixefs = lme4::fixef(glm_fit),
+      ranefs = lme4::ranef(glm_fit),
+      alt_fixefs = lme4::fixef(glm2),
+      alt_ranefs = lme4::ranef(glm2),
+      pval = pvals
+    )
+  } else {
+    list(
+      query = query,
+      coefs = coef(glm_fit),
+      fixefs = lme4::fixef(glm_fit),
+      ranefs = lme4::ranef(glm_fit),
+      pval = pvals
+    )
+  }
 }
 
 glpkme <- function(formula,
-                 queries,
-                 data,
-                 h,
-                 degree = 0,
-                 kernel = mixedcurve::gauss_kern,
-                 family = "gaussian",
-                 parallel = TRUE, cl = NULL) {
+                   queries,
+                   data,
+                   h,
+                   degree = 2,
+                   kernel = mixedcurve::box_kern,
+                   kthresh = 1e-8,
+                   family = "gaussian",
+                   parallel = TRUE,
+                   alternative_hypothesis = NULL,
+                   warnings = TRUE,
+                   cl = NULL) {
   # TODO: enforce that formula has random effect kernel terms
+  # TODO: add warning for kernel not equal to box_kern
   if (is.matrix(queries)) {
     tqueries <- split(queries, seq_len(nrow(queries)))
   } else if (is.vector(queries)) {
@@ -456,8 +490,10 @@ glpkme <- function(formula,
           data = datas,
           degree = degree,
           kernel = kernel,
+          kthresh = kthresh,
           h = h,
-          family = family
+          family = family,
+          alternative_hypothesis = alternative_hypothesis
         )
       }, cl = cl, datas = data)
       on.exit(parallel::stopCluster(cl))
@@ -468,8 +504,10 @@ glpkme <- function(formula,
         data = data,
         degree = degree,
         kernel = kernel,
+        kthresh = kthresh,
         h = h,
-        family = family
+        family = family,
+        alternative_hypothesis = alternative_hypothesis
       )
     }, cl = cl)
   } else {
@@ -479,8 +517,10 @@ glpkme <- function(formula,
         data = data,
         degree = degree,
         kernel = kernel,
+        kthresh = kthresh,
         h = h,
-        family = family
+        family = family,
+        alternative_hypothesis = alternative_hypothesis
       )
     })
   }

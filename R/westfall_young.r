@@ -60,6 +60,30 @@ gen_pvals_anova <- function(dataf, xseq) {
 
 # }}} gen_pvals_anova
 
+westfall_young <- function(pvals, perm_pvals) {
+  nx <- length(pvals)
+  nperm <- ncol(perm_pvals)
+  srpvals <- sort(pvals, index.return = TRUE)
+  perm_pvals <- perm_pvals[srpvals$ix, ]
+  qstars <- matrix(0, nrow = nx, ncol = nperm)
+  for (j in 1:nx) {
+    qstars[j, ] <- unlist(lapply(
+      1:nperm, function(l) {
+        min(perm_pvals[j:nx, l])
+      }
+    ))
+  }
+  rj <- numeric(nx)
+  for (j in 1:nx) {
+    rj[j] <- mean(qstars[j, ] <= srpvals$x[j])
+  }
+  corrected_pvals <- numeric(nx)
+  corrected_pvals[srpvals$ix] <- rj
+  corrected_pvals
+}
+
+
+
 # {{{ wy_full()
 
 #' Westfall-Young full method
@@ -95,20 +119,23 @@ wy_full <- function(dataf, xseq, nperm, gen_pvals_fun,
     function(i) calc_perm_pvals(dataf, xseq)
   )
   pstars <- do.call(cbind, pstars_list)
-  pstars <- pstars[srpvals$ix, ]
-  qstars <- matrix(0, nrow = nx, ncol = nperm)
-  for (j in 1:nx) {
-    for (l in 1:nperm) {
-      qstars[j, l] <- min(pstars[j:nx, l])
-    }
-  } # is this slow????
-  rj <- numeric(nx)
-  for (j in 1:nx) {
-    rj[j] <- mean(qstars[j, ] <= srpvals$x[j])
-  }
-  corrected_pvals <- numeric(nx)
-  corrected_pvals[srpvals$ix] <- rj
-  corrected_pvals
+  westfall_young(rpvals, pstars)
+  # pstars <- pstars[srpvals$ix, ]
+  # qstars <- matrix(0, nrow = nx, ncol = nperm)
+  # for (j in 1:nx) {
+  #   qstars[j, ] <- unlist(lapply(
+  #     1:nperm, function(l) {
+  #       min(pstars[j:nx, l])
+  #     }
+  #   ))
+  # }
+  # rj <- numeric(nx)
+  # for (j in 1:nx) {
+  #   rj[j] <- mean(qstars[j, ] <= srpvals$x[j])
+  # }
+  # corrected_pvals <- numeric(nx)
+  # corrected_pvals[srpvals$ix] <- rj
+  # corrected_pvals
 }
 # }}} westfall-young full
 

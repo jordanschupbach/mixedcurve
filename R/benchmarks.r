@@ -106,7 +106,7 @@ mdoppler_1d <- function(x, alpha = 20, beta = 0.25) {
 #' xseq <- seq(0, 1, length.out = neval)
 #' plot(xseq, mixedcurve::mdoppler(xseq), type = 'l', xlab ='x',
 #'      ylab = 'mdoppler(x)', main = 'Modified Doppler Function (1d)')
-mdoppler <- function(x, alpha = 20, beta = 0.25) { # add dom
+mdoppler <- function(x, i = 0, alpha = 20, beta = 0.25) { # add dom
   if (is.matrix(x)) {
     shift_and_rotate(mdoppler_1d, dim = ncol(x))(x)
   } else if (is.vector(x) && !is.list(x)) {

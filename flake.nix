@@ -26,6 +26,7 @@
           pkgs.rPackages.rmarkdown
           pkgs.rPackages.knitr
           pkgs.rPackages.devtools
+          pkgs.rPackages.inline
           pkgs.nlopt
           colorout
         ];
@@ -47,10 +48,12 @@
       propagatedBuildInputs = [
         pkgs.rPackges.viridis 
         pkgs.rPackges.devtools
+        pkgs.rPackages.inline
       ];
       nativeBuildInputs = [
         pkgs.rPackges.viridis
         pkgs.rPackges.devtools
+        pkgs.rPackages.inline
       ];
     in {
       devShells.default = pkgs.mkShell {
@@ -70,6 +73,7 @@
             ]))
            pkgs.R
            pkgs.rPackages.languageserver
+           pkgs.rPackages.inline
            pkgs.julia
            pkgs.octaveFull
            pkgs.lua
@@ -91,6 +95,9 @@
           rPackages.nloptr
           rPackages.languageserver
           rPackages.testthat
+          rPackages.inline
+          rPackages.ParBayesianOptimization
+          rPackages.ggdark
           # chromium
           # qutebrowser
           # pandoc
