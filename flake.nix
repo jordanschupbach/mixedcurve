@@ -28,22 +28,22 @@
           pkgs.rPackages.devtools
           pkgs.rPackages.inline
           pkgs.nlopt
-          colorout
+          # colorout
         ];
         meta = {
           buildVignettes = true;
         };
       };
-      # https://github.com/jalvesaq/colorout
-      colorout = pkgs.rPackages.buildRPackage {
-        name = "colorout";
-        src = pkgs.fetchFromGitHub {
-          owner = "jalvesaq";
-          repo = "colorout";
-          rev = "64863bb252ea9a6c3aeac10fcba6ce547697d176";
-          sha256 = "sha256-QCYR00rC0GB12xgztlJWr7OmNEQsti/1p0gnhqPQv1Y=";
-        };
-      };
+      # # https://github.com/jalvesaq/colorout
+      # colorout = pkgs.rPackages.buildRPackage {
+      #   name = "colorout";
+      #   src = pkgs.fetchFromGitHub {
+      #     owner = "jalvesaq";
+      #     repo = "colorout";
+      #     rev = "64863bb252ea9a6c3aeac10fcba6ce547697d176";
+      #     sha256 = "sha256-QCYR00rC0GB12xgztlJWr7OmNEQsti/1p0gnhqPQv1Y=";
+      #   };
+      # };
 
       propagatedBuildInputs = [
         pkgs.rPackges.viridis 
@@ -81,7 +81,7 @@
         nativeBuildInputs = [pkgs.bashInteractive];
         buildInputs = with pkgs; [
           mixedcurve
-          colorout
+          # colorout
           R
           rPackages.devtools
           rPackages.covr
