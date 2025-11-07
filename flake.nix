@@ -45,6 +45,32 @@
       #   };
       # };
 
+      # https://github.com/IndrajeetPatil/pairwiseComparisons
+      pairwiseComparisons = pkgs.rPackages.buildRPackage {
+        name = "pairwiseComparisons";
+        src = pkgs.fetchFromGitHub {
+          owner = "IndrajeetPatil";
+          repo = "pairwiseComparisons";
+          rev = "617dbfed08bdeb7ac6cf540a4573f38a47920ac3";
+          sha256 = "sha256-mgx1ZF5B/wUMgEXtzTV5EEEaz+QOnCZE9ijQ5QoqRl8=";
+        };
+      nativeBuildInputs = [
+          pkgs.R 
+          ];
+
+
+        buildInputs = [
+          pkgs.rPackages.dplyr 
+          pkgs.rPackages.insight
+          pkgs.rPackages.parameters
+          pkgs.rPackages.PMCMRplus
+          pkgs.rPackages.purrr
+          pkgs.rPackages.rlang
+          pkgs.rPackages.statsExpressions
+          pkgs.rPackages.WRS2
+        ];
+      };
+
       propagatedBuildInputs = [
         pkgs.rPackges.viridis 
         pkgs.rPackges.devtools
@@ -98,6 +124,9 @@
           rPackages.inline
           rPackages.ParBayesianOptimization
           rPackages.ggdark
+          pairwiseComparisons
+          rPackages.lmerTest
+          rPackages.multcomp
           # chromium
           # qutebrowser
           # pandoc

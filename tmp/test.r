@@ -48,7 +48,7 @@ df1 <- mixedcurve::gen_hfanova_data(
   bounds = c(0, 1),
   sigmas = c(0.01, 0),
   n = c(200, 1),
-  ngrp = 1
+  ngrp = 2
 )
 
 mixedcurve::dark_mode()
@@ -75,6 +75,7 @@ lines(qseq, qseq_fit, col = "orange", lwd = 2)
 abline(h = 0, col = "red", lty = 2)
 # tstats
 boot_t_stats <- matrix(NA, nrow = 999, ncol = nq)
+boot_pvals <- matrix(NA, nrow = 999, ncol = nq)
 set.seed(1234)
 cl <- parallel::makeCluster(parallel::detectCores() - 1)
 parallel::clusterExport(cl, varlist = c("df1", "subsetdf"))
@@ -89,18 +90,21 @@ for (i in 1:nq) {
     model0 <- lm(y_boot ~ -1, data = df_sub)
     anova_res <- anova(model0, model1)
     f_stat <- anova_res$F[2]
-    f_stat
+    pval <- anova_res$P[2]
+    list(fstat = f_stat, pval = pval)
   }, cl = cl)
-  boot_t_stats[, i] <- unlist(boot_t)
+  boot_t_stats[, i] <- unlist(lapply(boot_t, function(elmt) elmt$fstat))
+  boot_pvals[, i] <- unlist(lapply(boot_t, function(elmt) elmt$pval))
 }
 parallel::stopCluster(cl)
+
+plot(df1$x1, df1$y, pch = 20, cex = 1.0)
+lines(qseq, qseq_fit, col = "orange", lwd = 2)
 system.time({
   adj_pvals <- romano_wolf(tstats, boot_t_stats)
 })
+abline(h = 0.00, col = "red", lty = 2)
 mixedcurve::plot_pval_regions(qseq, adj_pvals, pthresh = 0.05)
-# system.time({
-#   adj_pvals2 <- romano_wolf_c(tstats, boot_t_stats)
-# })
 plot(qseq, adj_pvals,
   type = "b", pch = 20, col = "lightblue",
   ylab = "Romano-Wolf adjusted p-values",
@@ -108,5 +112,12 @@ plot(qseq, adj_pvals,
 )
 abline(h = 0.05, col = "red", lty = 2)
 mixedcurve::plot_pval_regions(qseq, adj_pvals, pthresh = 0.05, ylim = c(0, 1.0))
+lines(qseq, pvals, col = "white")
+lines(qseq, p.adjust(pvals, method = "BH"), col = "green")
+lines(qseq, p.adjust(pvals, method = "BY"), col = "orange")
+lines(qseq, p.adjust(pvals, method = "holm"), col = "yellow")
+lines(qseq, p.adjust(pvals, method = "hochberg"), col = "purple")
+lines(qseq, p.adjust(pvals, method = "hommel"), col = "pink")
+
 
 cbind(adj_pvals, adj_pvals2)
