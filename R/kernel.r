@@ -53,6 +53,30 @@ box_kern <- function(x) {
   kernel_values
 }
 
+subsetdf <- function(dataf, dnames, query, h) {
+  if (length(dnames) != length(query)) {
+    stop("Length of dnames and query must be the same")
+  }
+  if (!all(dnames %in% names(dataf))) {
+    stop("Some dnames are not found in the dataframe")
+  }
+  queries <- t(replicate(nrow(dataf), as.numeric(query), simplify = "matrix"))
+  distances <- NULL
+  if (length(query) > 1) {
+    distances <- sqrt(apply(
+      matrix(unlist(lapply(seq_len(nrow(dataf)), function(i) {
+        dataf[i, dnames] - queries[i, ]
+      })), nrow = nrow(dataf), byrow = TRUE)^2,
+      1, sum
+    ))
+  } else {
+    distances <- abs(dataf[, dnames] - as.numeric(query))
+  }
+  dataf[distances <= h, , drop = FALSE]
+}
+
+
+
 
 # {{{ k_h
 
