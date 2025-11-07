@@ -2,14 +2,14 @@ nk <- 400
 df1 <- mixedcurve::gen_hfanova_data(
   f = mixedcurve::m3,
   bounds = c(0, 1),
-  sigmas = c(0.01, 0),
+  sigmas = c(0.2, 0),
   n = c(nk, 1),
   ngrp = 2
 )
 df2 <- mixedcurve::gen_hfanova_data(
   f = mixedcurve::m3,
   bounds = c(0, 1),
-  sigmas = c(0.01, 0),
+  sigmas = c(0.2, 0),
   n = c(nk, 1),
   ngrp = 2
 )
@@ -19,7 +19,7 @@ levels(df1$cov) <- c(1, 2, 3)
 levels(df2$cov) <- c(1, 2, 3)
 df1 <- rbind(df1, df2)
 mixedcurve::dark_mode()
-par(mfrow = c(2, 1))
+par(mfrow = c(4, 1))
 plot(df1$x1, df1$y, pch = 20, cex = 1.0, col = df1$cov)
 subsetdf <- function(df, q, h) {
   df[abs(df$x1 - q) <= h, ]
@@ -45,7 +45,6 @@ for (i in seq_along(qseq)) {
     test = multcomp::univariate()
   )$test$tstat
 }
-
 plot(qseq, pvals[, 1], type = "l")
 lines(qseq, pvals[, 2], col = 2)
 lines(qseq, pvals[, 3], col = 3)
@@ -100,43 +99,39 @@ for (i in 1:nq) {
   boot_tstats2[, i] <- unlist(lapply(boot_t, function(elmt) elmt$tstats[2]))
   boot_tstats3[, i] <- unlist(lapply(boot_t, function(elmt) elmt$tstats[3]))
 }
+boot_pvals
 parallel::stopCluster(cl)
-
-str(boot_tstats3)
-
-plot(qseq, pval)
-
+# plot(qseq, pval)
 # anova_adj_pvals <- mixedcurve::romano_wolf(tstats, boot_t_stats)
-plot(qseq, anova_adj_pvals, type = "l")
-lines(qseq, pc1_adj_pvals)
-lines(qseq, pc2_adj_pvals)
-lines(qseq, pc3_adj_pvals)
-
-plot(df1$x1, df1$y, pch = 20, cex = 1.0)
-lines(qseq, qseq_fit, col = "orange", lwd = 2)
+# plot(qseq, anova_adj_pvals, type = "l")
+# lines(qseq, pc1_adj_pvals, col = 2)
+# lines(qseq, pc2_adj_pvals, col = 3)
+# lines(qseq, pc3_adj_pvals, col = 4)
+# plot(df1$x1, df1$y, pch = 20, cex = 1.0)
+# lines(qseq, qseq_fit, col = "orange", lwd = 2)
 system.time({
   anova_adj_pvals <- mixedcurve::romano_wolf(tstats, boot_t_stats)
   pc1_adj_pvals <- mixedcurve::romano_wolf(pairtstats[, 1], boot_tstats1)
   pc2_adj_pvals <- mixedcurve::romano_wolf(pairtstats[, 2], boot_tstats2)
   pc3_adj_pvals <- mixedcurve::romano_wolf(pairtstats[, 3], boot_tstats3)
 })
-
-
-abline(h = 0.00, col = "red", lty = 2)
+# abline(h = 0.00, col = "red", lty = 2)
 mixedcurve::plot_pval_regions(qseq, adj_pvals, pthresh = 0.05)
-plot(qseq, adj_pvals,
+plot(qseq, anova_adj_pvals,
   type = "b", pch = 20, col = "lightblue",
   ylab = "Romano-Wolf adjusted p-values",
-  xlab = "Index"
+  xlab = "Index",
+  ylim = c(0, 1.0)
 )
 abline(h = 0.05, col = "red", lty = 2)
-mixedcurve::plot_pval_regions(qseq, adj_pvals, pthresh = 0.05, ylim = c(0, 1.0))
-lines(qseq, pvals, col = "white")
-lines(qseq, p.adjust(pvals, method = "BH"), col = "green")
-lines(qseq, p.adjust(pvals, method = "BY"), col = "orange")
-lines(qseq, p.adjust(pvals, method = "holm"), col = "yellow")
-lines(qseq, p.adjust(pvals, method = "hochberg"), col = "purple")
-lines(qseq, p.adjust(pvals, method = "hommel"), col = "pink")
-
-
-cbind(adj_pvals, adj_pvals2)
+lines(qseq, pc1_adj_pvals, col = 2)
+lines(qseq, pc2_adj_pvals, col = 3)
+lines(qseq, pc3_adj_pvals, col = 4)
+# mixedcurve::plot_pval_regions(qseq, adj_pvals, pthresh = 0.05, ylim = c(0, 1.0))
+# lines(qseq, pvals, col = "white")
+# lines(qseq, p.adjust(pvals, method = "BH"), col = "green")
+# lines(qseq, p.adjust(pvals, method = "BY"), col = "orange")
+# lines(qseq, p.adjust(pvals, method = "holm"), col = "yellow")
+# lines(qseq, p.adjust(pvals, method = "hochberg"), col = "purple")
+# lines(qseq, p.adjust(pvals, method = "hommel"), col = "pink")
+# cbind(adj_pvals, adj_pvals2)
