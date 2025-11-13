@@ -1060,7 +1060,7 @@ gen_hfanova_data2 <- function(f, n, sigmas, bounds, ndim = 1,
   g <- sample(1:ngrp, nrow(coreset_levels), replace = TRUE)
   curvdata <- list()
   for (i in seq_len(nrow(coreset_levels))) {
-    print(i)
+    # print(i)
     x <- do.call(
       cbind,
       lapply(
