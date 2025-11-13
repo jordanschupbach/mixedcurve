@@ -931,7 +931,6 @@ gen_hfanova_data <- function(f, n, sigmas, bounds, ndim = 1,
                              px = NULL, pxargs = NULL,
                              family = "gaussian",
                              white_noise = TRUE) {
-  for (g in seq_len(ngrp)) {
     #' {{{ Sample x
     if (is.null(px) || is.null(pxargs)) {
       px <- runif
@@ -1014,21 +1013,103 @@ gen_hfanova_data <- function(f, n, sigmas, bounds, ndim = 1,
       stop(paste("Family", family, "not implemented"))
     }
     #' }}} Sample y
-    # Combine into final data frame
-    if (g == 1) {
-      ret <- cbind(y, xdata, df1, rep(1, length(y)))
-      colnames(ret) <- c("y", colnames(xdata), colnames(df1), "cov")
-    } else {
-      tret <- cbind(y, xdata, df1, rep(g, length(y)))
-      colnames(tret) <- c("y", colnames(xdata), colnames(df1), "cov")
-      ret <- rbind(ret, tret)
-    }
-  }
   colnames(ret) <- c("y", colnames(xdata), colnames(df1), "cov")
   ret$cov <- as.factor(ret$cov)
   ret
 }
 # }}} gen_hfanova_data(...)
+
+
+
+# {{{ gen_hfanova_data(...)
+
+gen_hfanova_data2 <- function(f, n, sigmas, bounds, ndim = 1,
+                              ngrp = 3,
+                              px = NULL, pxargs = NULL,
+                              family = "gaussian",
+                              white_noise = TRUE) {
+  if (is.null(px) || is.null(pxargs)) {
+    px <- runif
+    if (!is.list(bounds) && ndim != 1) {
+      stop("If bounds is a vector, ndim must be 1")
+    }
+    if (is.vector(bounds) && ndim == 1) {
+      tbounds <- list()
+      tbounds[[1]] <- bounds
+      bounds <- tbounds
+    }
+    pxargs <- lapply(
+      1:ndim,
+      function(i) {
+        list(min = bounds[[i]][1], max = bounds[[i]][2])
+      }
+    )
+  }
+  neffects <- unlist(lapply(seq_along(n), function(i) {
+    prod(n[length(n):(length(n) - (i - 1))])
+  }))
+  neffects <- neffects[rev(seq_along(neffects))]
+  coreset_levels <- mixedcurve::create_group_df(n[-1])
+  names(coreset_levels) <- paste0("grp", seq_len(ncol(coreset)))
+  noises <- lapply(
+    seq_along(sigmas),
+    function(i) {
+      rnorm(neffects[i], 0, sigmas[i])
+    }
+  )
+  g <- sample(1:ngrp, nrow(coreset_levels), replace = TRUE)
+  curvdata <- list()
+  for (i in seq_len(nrow(coreset_levels))) {
+    print(i)
+    x <- do.call(
+      cbind,
+      lapply(
+        seq_len(ndim),
+        function(d) {
+          do.call(px, c(list(n = n[1]), pxargs[[d]]))
+        }
+      )
+    )
+    curvdata[[i]] <- list()
+    curvdata[[i]]$x <- x
+    curvdata[[i]]$grp0 <- as.factor(1:n[1])
+    ncol(coreset_levels)
+    for (j in seq_len(ncol(coreset_levels))) {
+      curvdata[[i]][[colnames(coreset_levels)[j]]] <-
+        rep(coreset_levels[i, j], n[1])
+    }
+    curvdata[[i]]$cov <- rep(g[i], n[1])
+    ytrue <- f(x, g[i])
+    y <- ytrue + rep(noises[[2]][coreset_levels[i, 1]], each = n[1])
+    if (length(noises) > 2) {
+      for (j in 2:(length(noises) - 1)) {
+        y <- y + rep(noises[[j]][coreset_levels[i, j]], each = n[1])
+      }
+    }
+    curvdata[[i]]$y <- y
+  }
+  ret <- do.call(
+    rbind,
+    lapply(curvdata, function(curv) {
+      tdf <- as.data.frame(curv$x)
+      colnames(tdf) <- paste0("x", seq_len(ncol(tdf)))
+      tdf$y <- curv$y
+      tdf$grp0 <- curv$grp0
+      for (j in seq_len(ncol(coreset_levels))) {
+        tdf[[colnames(coreset_levels)[j]]] <- curv[[colnames(coreset_levels)[j]]]
+      }
+      tdf$cov <- curv$cov
+      tdf
+    }))
+  ret
+}
+
+
+
+# }}} gen_hfanova_data(...)
+
+
+
 
 # Local Variables:
 # eval: (origami-mode t)
