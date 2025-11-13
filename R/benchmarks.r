@@ -1050,7 +1050,7 @@ gen_hfanova_data2 <- function(f, n, sigmas, bounds, ndim = 1,
   }))
   neffects <- neffects[rev(seq_along(neffects))]
   coreset_levels <- mixedcurve::create_group_df(n[-1])
-  names(coreset_levels) <- paste0("grp", seq_len(ncol(coreset)))
+  names(coreset_levels) <- paste0("grp", seq_len(ncol(coreset_levels)))
   noises <- lapply(
     seq_along(sigmas),
     function(i) {
