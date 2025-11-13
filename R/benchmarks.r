@@ -1101,6 +1101,7 @@ gen_hfanova_data2 <- function(f, n, sigmas, bounds, ndim = 1,
       tdf$cov <- curv$cov
       tdf
     }))
+  ret$cov <- as.factor(ret$cov)
   ret
 }
 
