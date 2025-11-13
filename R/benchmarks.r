@@ -1086,7 +1086,7 @@ gen_hfanova_data2 <- function(f, n, sigmas, bounds, ndim = 1,
         y <- y + rep(noises[[j]][coreset_levels[i, j]], each = n[1])
       }
     }
-    curvdata[[i]]$y <- y
+    curvdata[[i]]$y <- y + rnorm(n[1], 0, sigmas[1])
   }
   ret <- do.call(
     rbind,
