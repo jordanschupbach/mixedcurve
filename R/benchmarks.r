@@ -1050,7 +1050,7 @@ gen_hfanova_data2 <- function(f, n, sigmas, bounds, ndim = 1,
   }))
   neffects <- neffects[rev(seq_along(neffects))]
   coreset_levels <- mixedcurve::create_group_df(n[-1])
-  names(coreset_levels) <- paste0("grp", seq_len(ncol(coreset_levels)))
+  names(coreset_levels) <- paste0("grp", seq_len(length(n[-1])))
   noises <- lapply(
     seq_along(sigmas),
     function(i) {
@@ -1082,8 +1082,8 @@ gen_hfanova_data2 <- function(f, n, sigmas, bounds, ndim = 1,
     ytrue <- f(x, g[i])
     y <- ytrue + rep(noises[[2]][coreset_levels[i, 1]], each = n[1])
     if (length(noises) > 2) {
-      for (j in 2:(length(noises) - 1)) {
-        y <- y + rep(noises[[j]][coreset_levels[i, j]], each = n[1])
+      for (j in 3:(length(noises))) {
+        y <- y + rep(noises[[j]][coreset_levels[i, j - 1]], each = n[1])
       }
     }
     curvdata[[i]]$y <- y + rnorm(n[1], 0, sigmas[1])
@@ -1104,8 +1104,6 @@ gen_hfanova_data2 <- function(f, n, sigmas, bounds, ndim = 1,
   ret$cov <- as.factor(ret$cov)
   ret
 }
-
-
 
 # }}} gen_hfanova_data(...)
 
